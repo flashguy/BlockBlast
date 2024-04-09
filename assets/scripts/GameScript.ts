@@ -1,4 +1,4 @@
-import { _decorator, Component, error, EventMouse, Graphics, input, Input, instantiate, Label, LabelComponent, log, Node, Prefab, randomRangeInt, Sprite, Tween, tween, TweenAction, TweenSystem, Vec2, Vec3, warn } from 'cc';
+import { _decorator, Component, EventMouse, Graphics, input, Input, instantiate, log, Node, Prefab, randomRangeInt, tween, Vec2, Vec3, warn } from 'cc';
 import { Cell } from './Honeycomb/Cells/Cell';
 import { Grid } from './Honeycomb/Grids/Grid';
 import { Shape } from './Honeycomb/Shapes/Shape';
@@ -26,7 +26,10 @@ export class GameScript extends Component
     private blokPrefabs:Prefab[] = [];
 
     @property
-    private minBlocksGroup:number = 2;
+    private minBlocksGroup:number = 1;
+
+    @property
+    private maxShuffleTry:number = 3;
 
     private _cell:Cell;
     private _grid:Grid;
@@ -39,13 +42,13 @@ export class GameScript extends Component
     private _checkedPositions:Array<Vec2> = new Array<Vec2>();
     private _firstSelectedTile:Tile;
     private _searchStackDepth:number = 0;
-    private _maxShuffleTry:number = 3;
     private _currentShuffleTry:number = 0;
     private _startedAnimations:number = 0;
     private _offsetNewTile:Map<number, number> = new Map<number, number>();
     private _animatedTiles:Array<Tile> = new Array<Tile>();
     private _bombDistance:number = 2;
     private _swapPos:Vec2;
+    private _offsetCenterPos:Vec2 = new Vec2();
 
     onEnable():void
     {
@@ -54,7 +57,6 @@ export class GameScript extends Component
 
     start()
     {
-
         this.setState(GameState.LOAD_LEVEL);
 
         input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
@@ -100,9 +102,45 @@ export class GameScript extends Component
         }
     }
 
+    private loadLevel():void
+    {
+        this._tiles = new Array<Tile>();
+
+        this.node.removeAllChildren();
+
+        let fieldSize:Vec2 = new Vec2(4, 4);
+
+        this._cell = new CellFromRectangle(85.5, 85.5);
+
+        // this._offsetCenterPos.set(fieldSize.x % 2 == 0 ? this._cell.halfWidth : 0, fieldSize.y % 2 == 0 ? this._cell.halfHeight : 0);
+        // this._offsetCenterPos.set(this._cell.halfWidth, this._cell.halfHeight);
+        // this._offsetCenterPos.set(this._cell.width * 2, this._cell.height * 2);
+        // this._offsetCenterPos = new Vec2(200, 200);
+        
+        // this._grid = new RectangleGrid(this._cell, this._offsetCenterPos.clone().negative(), new Vec2());
+        this._grid = new RectangleGrid(this._cell, new Vec2(), new Vec2());
+        this._shapeRectangle = ShapeBuilder.getRectangle(new Vec2(), Position.RT, fieldSize);
+
+        this._shapeRectangle.get().forEach((cellPoint) =>
+        {
+            this.createTile(cellPoint.clone());
+        });
+
+        this.setState(GameState.WAIT_MOUSE_CLICK);
+
+        const g = this.node.getComponent(Graphics);
+        g.lineWidth = 5;
+        g.moveTo(0, 1000)
+        g.lineTo(0, -1000);
+        g.moveTo(-1000, 0);
+        g.lineTo(1000, 0);
+        g.close();
+        g.stroke();
+    }
+
     private createTile(cellPoint:Vec2):Tile
     {
-        let inScreen:Vec2 = this._grid.gridToScreen(cellPoint).add(new Vec2(this._cell.halfWidth, this._cell.halfHeight));
+        let inScreen:Vec2 = this._grid.gridToScreen(cellPoint).add(this._offsetCenterPos);
         // let tileType:number = randomRangeInt(0, this.blokPrefabs.length);
         let tileType:number = randomRangeInt(0, 3);
         let prefab:Node = instantiate(this.blokPrefabs[tileType]);
@@ -117,35 +155,10 @@ export class GameScript extends Component
         tile.node = prefab;
         tile.type = tileType;
         tile.updateLabel();
-
+        
         this._tiles.push(tile);
 
         return tile;
-    }
-
-    private loadLevel():void
-    {
-        this._tiles = new Array<Tile>();
-
-        this.node.removeAllChildren();
-
-        this._cell = new CellFromRectangle(85.5, 85.5);
-        this._grid = new RectangleGrid(this._cell, new Vec2(this._cell.halfWidth, this._cell.halfHeight).negative(), new Vec2());
-        this._shapeRectangle = ShapeBuilder.getRectangle(new Vec2(), Position.C, new Vec2(10, 10));
-
-        this._shapeRectangle.get().forEach((cellPoint) =>
-        {
-            this.createTile(cellPoint.clone());
-        });
-
-        this.setState(GameState.WAIT_MOUSE_CLICK);
-
-        const g = this.node.getComponent(Graphics);
-        g.lineWidth = 5;
-        g.moveTo(0, 1000)
-        g.lineTo(0, -1000);
-        g.close();
-        g.stroke();
     }
 
     private getTyleByGridPosition(pos:Vec2):Tile
@@ -355,7 +368,7 @@ export class GameScript extends Component
 
                         let newPos:Vec2 = cellPoint.clone();
                         newPos.y += this._offsetNewTile.get(cellPoint.x);
-                        let inScreen:Vec2 = this._grid.gridToScreen(newPos).add(new Vec2(this._cell.halfWidth, this._cell.halfHeight));
+                        let inScreen:Vec2 = this._grid.gridToScreen(newPos).add(this._offsetCenterPos);
                         newTile.node.setPosition(new Vec3(inScreen.x, inScreen.y, 0));
 
                         this._animatedTiles.push(newTile);
@@ -383,7 +396,7 @@ export class GameScript extends Component
         {
             // linear | bounceOut
             let currentTile:Tile = this._animatedTiles[i];
-            let inScreen:Vec2 = this._grid.gridToScreen(currentTile.pos).add(new Vec2(this._cell.halfWidth, this._cell.halfHeight));
+            let inScreen:Vec2 = this._grid.gridToScreen(currentTile.pos).add(this._offsetCenterPos);
             let distance:number = Math.max(Math.abs(currentTile.node.getPosition().x - inScreen.x), Math.abs(currentTile.node.getPosition().y - inScreen.y));
             let moveSpeed:number = 700;
             let duration:number = distance / moveSpeed;
@@ -450,7 +463,7 @@ export class GameScript extends Component
 
         if (isShuffleNeed)
         {
-            if (this._currentShuffleTry == this._maxShuffleTry)
+            if (this._currentShuffleTry == this.maxShuffleTry)
             {
                 warn("НЕТ ХОДОВ. ПРОИГРЫШ :(");
             }
@@ -515,7 +528,7 @@ export class GameScript extends Component
             let currentTile:Tile = this._tiles[i];
             currentTile.node.setSiblingIndex(i);
             
-            let inScreen:Vec2 = this._grid.gridToScreen(currentTile.pos).add(new Vec2(this._cell.halfWidth, this._cell.halfHeight));
+            let inScreen:Vec2 = this._grid.gridToScreen(currentTile.pos).add(this._offsetCenterPos);
             tween(currentTile.node)
             .to(0.4, {position: new Vec3(inScreen.x, inScreen.y, 0)}, { easing: 'linear' })
             .call(() => {
@@ -578,7 +591,7 @@ export class GameScript extends Component
 
                 this._startedAnimations = 2;
 
-                let inScreen1:Vec2 = this._grid.gridToScreen(leftTile.pos).add(new Vec2(this._cell.halfWidth, this._cell.halfHeight));
+                let inScreen1:Vec2 = this._grid.gridToScreen(leftTile.pos).add(this._offsetCenterPos);
                 tween(leftTile.node)
                 .to(0.4, {position: new Vec3(inScreen1.x, inScreen1.y, 0)}, { easing: 'linear' })
                 .call(() => {
@@ -586,7 +599,7 @@ export class GameScript extends Component
                 })
                 .start();
 
-                let inScreen2:Vec2 = this._grid.gridToScreen(rightTile.pos).add(new Vec2(this._cell.halfWidth, this._cell.halfHeight));
+                let inScreen2:Vec2 = this._grid.gridToScreen(rightTile.pos).add(this._offsetCenterPos);
                 tween(rightTile.node)
                 .to(0.4, {position: new Vec3(inScreen2.x, inScreen2.y, 0)}, { easing: 'linear' })
                 .call(() => {

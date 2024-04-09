@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.SceneAsset",
-    "_name": "in_game_scene",
+    "_name": "InGameScene",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -11,7 +11,7 @@
   },
   {
     "__type__": "cc.Scene",
-    "_name": "in_game_scene",
+    "_name": "InGameScene",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -321,7 +321,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "game",
+    "_name": "GameScript",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -403,6 +403,7 @@
       }
     ],
     "minBlocksGroup": 2,
+    "maxShuffleTry": 3,
     "_id": "73dOlmRzlCwrP5GSb6vPMn"
   },
   {
