@@ -27,8 +27,17 @@ export class Shape
 
     public addIfNot(position:Vec2):void
     {
-        // TODO: !!!!!! не работает indexOf как в C# нужно переделать на проверку в цикле
-        if (this._positions.indexOf(position) == -1)
+        let found:boolean = false;
+        
+        this._positions.forEach((pos) =>
+        {
+            if (pos.equals(position))
+            {
+                found = true;
+            }
+        });
+
+        if (!found)
         {
             this._positions.push(position);
         }

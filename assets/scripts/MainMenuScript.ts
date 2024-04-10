@@ -29,12 +29,10 @@ export class MainMenuScript extends Component
             })
             .start();
 
-        let menuOldPos:Vec3 = this.mainMenuPanel.getPosition().clone();
-
-        this.mainMenuPanel.setPosition(this.mainMenuPanel.getPosition().add(new Vec3(200, 0, 0)));
+        this.mainMenuPanel.setScale(new Vec3());
 
         tween(this.mainMenuPanel)
-            .to(1.4, {position: menuOldPos}, { easing: 'elasticOut' })
+            .to(1.4, {scale: new Vec3(1, 1, 1)}, { easing: 'elasticOut' })
             .call(() => {
                 
             })

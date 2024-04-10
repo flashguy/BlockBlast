@@ -45,7 +45,7 @@ export abstract class Cell
     {
         this._halfWidth = this._width / 2;
         this._halfHeight = this._height / 2;
-        this._center.set(0, 0);
+        this._center.set(this._halfWidth, this._halfHeight);
         
         this.setVertices();
         this.setEdges();

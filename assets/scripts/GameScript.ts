@@ -22,6 +22,9 @@ enum GameState
 @ccclass('GameScript')
 export class GameScript extends Component
 {
+    @property(Node)
+    private field:Node = null;
+
     @property([Prefab])
     private blokPrefabs:Prefab[] = [];
 
@@ -48,7 +51,6 @@ export class GameScript extends Component
     private _animatedTiles:Array<Tile> = new Array<Tile>();
     private _bombDistance:number = 2;
     private _swapPos:Vec2;
-    private _offsetCenterPos:Vec2 = new Vec2();
 
     onEnable():void
     {
@@ -106,20 +108,13 @@ export class GameScript extends Component
     {
         this._tiles = new Array<Tile>();
 
-        this.node.removeAllChildren();
+        this.field.removeAllChildren();
 
-        let fieldSize:Vec2 = new Vec2(4, 4);
+        let fieldSize:Vec2 = new Vec2(9, 9);
 
         this._cell = new CellFromRectangle(85.5, 85.5);
-
-        // this._offsetCenterPos.set(fieldSize.x % 2 == 0 ? this._cell.halfWidth : 0, fieldSize.y % 2 == 0 ? this._cell.halfHeight : 0);
-        // this._offsetCenterPos.set(this._cell.halfWidth, this._cell.halfHeight);
-        // this._offsetCenterPos.set(this._cell.width * 2, this._cell.height * 2);
-        // this._offsetCenterPos = new Vec2(200, 200);
-        
-        // this._grid = new RectangleGrid(this._cell, this._offsetCenterPos.clone().negative(), new Vec2());
-        this._grid = new RectangleGrid(this._cell, new Vec2(), new Vec2());
-        this._shapeRectangle = ShapeBuilder.getRectangle(new Vec2(), Position.RT, fieldSize);
+        this._grid = new RectangleGrid(this._cell, new Vec2((fieldSize.x % 2 == 0 ? 0 : -this._cell.halfWidth), (fieldSize.y % 2 == 0 ? 0 : -this._cell.halfHeight)), new Vec2());
+        this._shapeRectangle = ShapeBuilder.getRectangle(new Vec2(), Position.C, fieldSize);
 
         this._shapeRectangle.get().forEach((cellPoint) =>
         {
@@ -128,7 +123,7 @@ export class GameScript extends Component
 
         this.setState(GameState.WAIT_MOUSE_CLICK);
 
-        const g = this.node.getComponent(Graphics);
+        const g = this.field.getComponent(Graphics);
         g.lineWidth = 5;
         g.moveTo(0, 1000)
         g.lineTo(0, -1000);
@@ -140,7 +135,7 @@ export class GameScript extends Component
 
     private createTile(cellPoint:Vec2):Tile
     {
-        let inScreen:Vec2 = this._grid.gridToScreen(cellPoint).add(this._offsetCenterPos);
+        let inScreen:Vec2 = this._grid.gridToScreen(cellPoint);
         // let tileType:number = randomRangeInt(0, this.blokPrefabs.length);
         let tileType:number = randomRangeInt(0, 3);
         let prefab:Node = instantiate(this.blokPrefabs[tileType]);
@@ -148,7 +143,7 @@ export class GameScript extends Component
         prefab.setScale(new Vec3(0.5, 0.5, 1));
         prefab.setPosition(new Vec3(inScreen.x, inScreen.y, 0));
 
-        this.node.addChild(prefab);
+        this.field.addChild(prefab);
 
         let tile:Tile = new Tile();
         tile.pos = cellPoint;
@@ -243,18 +238,19 @@ export class GameScript extends Component
         {
             if (this._currentState == GameState.WAIT_MOUSE_CLICK)
             {
-                console.log("==========================");
+                log("==========================");
+                // log(event.getLocationX(), event.getLocationY(), this.node.parent.getPosition());
                 let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
                 let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
                 let inGrid:[Position, Vec2] = this._grid.screenToGrid(screenPoint2D);
                 
-                // console.log(inGrid[0], inGrid[1].toString(), screenPoint2D.toString());
+                // log(inGrid[0], inGrid[1].toString(), screenPoint2D.toString());
                 if (inGrid[0] == Position.IN && this._shapeRectangle.isInShape(inGrid[1]))
                 {
                     this.setState(GameState.SEARCH_TILES);
-                    // console.log(inGrid[1].toString());
-                    // console.log(Position.T, this._grid.getCellNeighbor(inGrid[1], Position.T).toString());
-                    console.log("In Griid");
+                    // log(inGrid[1].toString());
+                    // log(Position.T, this._grid.getCellNeighbor(inGrid[1], Position.T).toString());
+                    log("In Griid");
                     this._searchStackDepth = 0;
                     this._checkedPositions = new Array<Vec2>();
 
@@ -266,10 +262,10 @@ export class GameScript extends Component
                 }
                 else
                 {
-                    console.log("Out Of Griid");
+                    log("Out Of Griid");
                 }
                 
-                // console.info(this._blocks.length, this._blocks.toString());
+                // info(this._blocks.length, this._blocks.toString());
                 // this._blocks.sort
 
                 // INFO: опредялять индекс по в Shape по ячейке
@@ -332,7 +328,7 @@ export class GameScript extends Component
             for (let i:number = 0; i < this._selectedTiles.length; i++)
             {
                 this._tiles.splice(this._tiles.indexOf(this._selectedTiles[i]), 1);
-                this.node.removeChild(this._selectedTiles[i].node);
+                this.field.removeChild(this._selectedTiles[i].node);
             }
 
             this.setState(GameState.SPAWN_TILES);
@@ -368,7 +364,7 @@ export class GameScript extends Component
 
                         let newPos:Vec2 = cellPoint.clone();
                         newPos.y += this._offsetNewTile.get(cellPoint.x);
-                        let inScreen:Vec2 = this._grid.gridToScreen(newPos).add(this._offsetCenterPos);
+                        let inScreen:Vec2 = this._grid.gridToScreen(newPos);
                         newTile.node.setPosition(new Vec3(inScreen.x, inScreen.y, 0));
 
                         this._animatedTiles.push(newTile);
@@ -396,7 +392,7 @@ export class GameScript extends Component
         {
             // linear | bounceOut
             let currentTile:Tile = this._animatedTiles[i];
-            let inScreen:Vec2 = this._grid.gridToScreen(currentTile.pos).add(this._offsetCenterPos);
+            let inScreen:Vec2 = this._grid.gridToScreen(currentTile.pos);
             let distance:number = Math.max(Math.abs(currentTile.node.getPosition().x - inScreen.x), Math.abs(currentTile.node.getPosition().y - inScreen.y));
             let moveSpeed:number = 700;
             let duration:number = distance / moveSpeed;
@@ -528,7 +524,7 @@ export class GameScript extends Component
             let currentTile:Tile = this._tiles[i];
             currentTile.node.setSiblingIndex(i);
             
-            let inScreen:Vec2 = this._grid.gridToScreen(currentTile.pos).add(this._offsetCenterPos);
+            let inScreen:Vec2 = this._grid.gridToScreen(currentTile.pos);
             tween(currentTile.node)
             .to(0.4, {position: new Vec3(inScreen.x, inScreen.y, 0)}, { easing: 'linear' })
             .call(() => {
@@ -591,7 +587,7 @@ export class GameScript extends Component
 
                 this._startedAnimations = 2;
 
-                let inScreen1:Vec2 = this._grid.gridToScreen(leftTile.pos).add(this._offsetCenterPos);
+                let inScreen1:Vec2 = this._grid.gridToScreen(leftTile.pos);
                 tween(leftTile.node)
                 .to(0.4, {position: new Vec3(inScreen1.x, inScreen1.y, 0)}, { easing: 'linear' })
                 .call(() => {
@@ -599,7 +595,7 @@ export class GameScript extends Component
                 })
                 .start();
 
-                let inScreen2:Vec2 = this._grid.gridToScreen(rightTile.pos).add(this._offsetCenterPos);
+                let inScreen2:Vec2 = this._grid.gridToScreen(rightTile.pos);
                 tween(rightTile.node)
                 .to(0.4, {position: new Vec3(inScreen2.x, inScreen2.y, 0)}, { easing: 'linear' })
                 .call(() => {

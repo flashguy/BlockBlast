@@ -29,9 +29,9 @@ export class CellFromRectangle extends Cell
     protected override setEdges():void
     {
         // INFO: рёбра нужно указывать против часовой стрелки для корректной работы алгоритма PointToEdgeDistance
-        this.edges.set(Position.B, new Edge(this.vertices.get(Position.LB), this.vertices.get(Position.RB)));
-        this.edges.set(Position.R, new Edge(this.vertices.get(Position.RB), this.vertices.get(Position.RT)));
-        this.edges.set(Position.T, new Edge(this.vertices.get(Position.RT), this.vertices.get(Position.LT)));
-        this.edges.set(Position.L, new Edge(this.vertices.get(Position.LT), this.vertices.get(Position.LB)));
+        this.edges.set(Position.B, new Edge(this.vertices.get(Position.LB).clone(), this.vertices.get(Position.RB).clone()));
+        this.edges.set(Position.R, new Edge(this.vertices.get(Position.RB).clone(), this.vertices.get(Position.RT).clone()));
+        this.edges.set(Position.T, new Edge(this.vertices.get(Position.RT).clone(), this.vertices.get(Position.LT).clone()));
+        this.edges.set(Position.L, new Edge(this.vertices.get(Position.LT).clone(), this.vertices.get(Position.LB).clone()));
     }
 }

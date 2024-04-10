@@ -10,8 +10,8 @@ export class Edge
 
     constructor(v1?:Vec2, v2?:Vec2)
     {
-        this.v1 = v1 ? v1 : new Vec2();
-        this.v2 = v2 ? v2 : new Vec2();
+        this.v1 = v1 ? v1.clone() : new Vec2();
+        this.v2 = v2 ? v2.clone() : new Vec2();
     }
 
     public set(e:Edge):Edge
