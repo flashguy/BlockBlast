@@ -61,7 +61,7 @@ export class PositionToString
             case Position.RB:  return "RB";
             case Position.UP:  return "UP";
             case Position.DOWN:  return "DOWN";
-            default: return "В перечислении Position нет такого ключа '" + key + "'";
+            default: return "В перечислении Position нет ключа с таким именем '" + key + "'";
         }
     }
 }

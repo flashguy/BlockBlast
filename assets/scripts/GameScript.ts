@@ -7,21 +7,42 @@ import { RectangleGrid } from './Honeycomb/Grids/RectangleGrid';
 import { ShapeBuilder } from './Honeycomb/Shapes/ShapeBuilder';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
-import { FieldPanelScript } from './FieldPanelScript';
 import { ProgressPanelScript } from './ui/ProgressPanelScript';
 import { ScorePanelScript } from './ui/ScorePanelScript';
 import { LevelPanelScript } from './ui/LevelPanelScript';
 import { Level } from './Level';
+import { FieldPanelScript } from './ui/FieldPanelScript';
 const { ccclass, property } = _decorator;
 
 enum GameState
 {
-    LOAD_LEVEL,
-    WAIT_MOUSE_CLICK,
+    SHOW_LEVEL_WINDOW,
+    START_LEVEL,
+    CREATE_LEVEL,
+    WAIT_SIMPLE_CLICK,
     SEARCH_TILES,
     REMOVE_TILES,
     SPAWN_TILES,
     WAIT_SWAP,
+}
+
+export class GameStateToString
+{
+    public static toString(key:GameState):String
+    {
+        switch (key)
+        {
+            case GameState.SHOW_LEVEL_WINDOW:   return "SHOW_LEVEL_WINDOW";
+            case GameState.START_LEVEL:         return "START_LEVEL";
+            case GameState.CREATE_LEVEL:        return "LOAD_LEVEL";
+            case GameState.WAIT_SIMPLE_CLICK:   return "WAIT_SIMPLE_CLICK";
+            case GameState.SEARCH_TILES:        return "SEARCH_TILES";
+            case GameState.REMOVE_TILES:        return "REMOVE_TILES";
+            case GameState.SPAWN_TILES:         return "SPAWN_TILES";
+            case GameState.WAIT_SWAP:           return "WAIT_SWAP";
+            default: return "В перечислении GameState нет ключа с таким именем '" + key + "'";
+        }
+    }
 }
 
 @ccclass('GameScript')
@@ -43,6 +64,12 @@ export class GameScript extends Component
     private blokPrefabs:Prefab[] = [];
 
     @property
+    private fieldSize:Vec2 = new Vec2(8, 8);
+
+    @property
+    private cellSize:Vec2 = new Vec2(85.5, 85.5);
+
+    @property
     private minBlocksGroup:number = 1;
 
     @property
@@ -55,6 +82,8 @@ export class GameScript extends Component
     private _progressPanelScript:ProgressPanelScript;
     private _scorePanelScript:ScorePanelScript;
     private _levelPanelScript:LevelPanelScript;
+
+    // private
 
     private _cell:Cell;
     private _grid:Grid;
@@ -74,6 +103,9 @@ export class GameScript extends Component
     private _bombDistance:number = 2;
     private _swapPos:Vec2;
 
+    private _currentLevel:number = -1;
+    private _currentLevelData:Level = null;
+
     onEnable():void
     {
         
@@ -86,9 +118,9 @@ export class GameScript extends Component
         this._scorePanelScript = this.scorePanel.getComponent(ScorePanelScript) as ScorePanelScript;
         this._levelPanelScript = this.levelPanel.getComponent(LevelPanelScript) as LevelPanelScript;
 
-        this.setState(GameState.LOAD_LEVEL);
-
         input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+
+        this.setState(GameState.SHOW_LEVEL_WINDOW);
     }
 
     update(deltaTime:number)
@@ -111,11 +143,80 @@ export class GameScript extends Component
         
     }
 
+    private onMouseDown(event:EventMouse):void
+    {
+        log("=========== onMouseDown ===========");
+        let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
+        let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
+        let inGrid:[Position, Vec2] = this._grid.screenToGrid(screenPoint2D);
+
+        if (inGrid[0] == Position.IN && this._shapeRectangle.isInShape(inGrid[1]))
+        {
+            log("==== >>> In Griid <<< ====");
+            
+            if (event.getButton() == 0)
+            {
+                switch (this._currentState)
+                {
+                    case GameState.WAIT_SIMPLE_CLICK: this.simpleClickAction(inGrid[1]); break;
+                }
+            }
+        }
+        else
+        {
+            log("==== >>> Out Of Griid <<< ====");
+        }
+
+        // this._progressPanelScript.setProgress(this._progressPanelScript.getProgress() + 10, true);
+        // this.getBomb(inGrid[1]); // взрыв
+
+        // if (this._currentState == GameState.WAIT_SWAP)
+        // {
+        //     if (inGrid[0] == Position.IN && this._shapeRectangle.isInShape(inGrid[1]))
+        //     {
+        //         this._searchStackDepth = 0;
+        //         this._checkedPositions = new Array<Vec2>();
+
+        //         this._firstSelectedTile = this.getTyleByGridPosition(inGrid[1]);
+        //         this._selectedTiles.push(this._firstSelectedTile);
+
+        //         this.checkSwap(inGrid[1]);
+        //     }
+        // }
+
+        
+        // тестовый if
+        if (event.getButton() == 1)
+        {
+            // if (inGrid[0] == Position.IN && this._shapeRectangle.isInShape(inGrid[1]))
+            // {
+            //     console.log(inGrid[1].toString());
+            //     console.log("In Griid", this.getTyleByGridPosition(inGrid[1]));
+            // }
+            // else
+            // {
+            //     console.log("Out Of Griid");
+            // }
+        }
+
+        // тестовый if
+        if (event.getButton() == 2)
+        {
+            this.setState(GameState.CREATE_LEVEL);
+        }
+
+        // тестовый if
+        if (event.getButton() == 3)
+        {
+            this.shuffle();
+        }
+    }
+
     private setState(state:GameState):void
     {
         if (state != this._currentState)
         {
-            log("New State:", state);
+            log("New State:", GameStateToString.toString(state));
             this._currentState = state;
             this.onStateChanged();
         }
@@ -125,40 +226,79 @@ export class GameScript extends Component
     {
         switch (this._currentState)
         {
-            case GameState.LOAD_LEVEL: this.loadLevel(); break;
-            case GameState.REMOVE_TILES: this.removeSelectedTiles(); break;
-            case GameState.SPAWN_TILES: this.spawnNewTiles(); break;
+            case GameState.SHOW_LEVEL_WINDOW:   this.showLevelWindow();     break;
+            case GameState.START_LEVEL:         this.startLevel();          break;
+            case GameState.CREATE_LEVEL:        this.createLevel();         break;
+            case GameState.REMOVE_TILES:        this.removeSelectedTiles(); break;
+            case GameState.SPAWN_TILES:         this.spawnNewTiles();       break;
         }
     }
 
-    private loadLevel():void
+    private showLevelWindow():void
     {
-        let fieldSize:Vec2 = new Vec2(8, 8);
+        this._currentLevel++;
 
+        if (this._currentLevel < this.levels.length)
+        {
+            this._currentLevelData = this.levels[this._currentLevel];
+            this._levelPanelScript.show(this._currentLevelData, () => { this.setState(GameState.START_LEVEL); });
+        }
+    }
+
+    private startLevel():void
+    {
+        this._progressPanelScript.show();
+        this._progressPanelScript.setProgress(0, false);
+
+        this._fieldPanelScript.show(this.fieldSize, this.cellSize);
+
+        this.setState(GameState.CREATE_LEVEL);
+    }
+
+    private createLevel():void
+    {
         this._tiles = new Array<Tile>();
 
         this._fieldPanelScript.clear();
 
-        this._cell = new CellFromRectangle(85.5, 85.5);
-        this._grid = new RectangleGrid(this._cell, new Vec2((fieldSize.x % 2 == 0 ? 0 : -this._cell.halfWidth), (fieldSize.y % 2 == 0 ? 0 : -this._cell.halfHeight)), new Vec2());
-        this._shapeRectangle = ShapeBuilder.getRectangle(new Vec2(), Position.C, fieldSize);
+        this._cell = new CellFromRectangle(this.cellSize.x, this.cellSize.y);
+        this._grid = new RectangleGrid(this._cell, new Vec2((this.fieldSize.x % 2 == 0 ? 0 : -this._cell.halfWidth), (this.fieldSize.y % 2 == 0 ? 0 : -this._cell.halfHeight)), new Vec2());
+        this._shapeRectangle = ShapeBuilder.getRectangle(new Vec2(), Position.C, this.fieldSize);
 
         this._shapeRectangle.get().forEach((cellPoint) =>
         {
             this.createTile(cellPoint.clone());
         });
 
-        this.setState(GameState.WAIT_MOUSE_CLICK);
-
-        this._fieldPanelScript.setSize(fieldSize.clone(), this._cell);
-        this._fieldPanelScript.show();
-
-        this._progressPanelScript.show();
-        this._progressPanelScript.setProgress(0, false);
-
-        this._scorePanelScript.show(10, 222);
-        this._levelPanelScript.show(1);
+        this.setState(GameState.WAIT_SIMPLE_CLICK);
     }
+
+// this._scorePanelScript.show(10, 222);
+
+    // Проверка рядом стоящих тайлов после клика
+    private simpleClickAction(pos:Vec2):void
+    {
+        this._searchStackDepth = 0;
+        this._checkedPositions = new Array<Vec2>();
+
+        this._firstSelectedTile = this.getTyleByGridPosition(pos);
+        this._selectedTiles.push(this._firstSelectedTile);
+
+        this.checkNeighbors(pos, null);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     private createTile(cellPoint:Vec2):Tile
     {
@@ -259,96 +399,6 @@ export class GameScript extends Component
         }
     }
 
-    private onMouseDown(event:EventMouse):void
-    {
-        if (event.getButton() == 0)
-        {
-            if (this._currentState == GameState.WAIT_MOUSE_CLICK)
-            {
-                log("==========================");
-                // log(event.getLocationX(), event.getLocationY(), this.node.parent.getPosition());
-                let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
-                let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
-                let inGrid:[Position, Vec2] = this._grid.screenToGrid(screenPoint2D);
-                
-                // log(inGrid[0], inGrid[1].toString(), screenPoint2D.toString());
-                if (inGrid[0] == Position.IN && this._shapeRectangle.isInShape(inGrid[1]))
-                {
-                    this.setState(GameState.SEARCH_TILES);
-                    // log(inGrid[1].toString());
-                    // log(Position.T, this._grid.getCellNeighbor(inGrid[1], Position.T).toString());
-                    log("In Griid");
-                    this._searchStackDepth = 0;
-                    this._checkedPositions = new Array<Vec2>();
-
-                    this._firstSelectedTile = this.getTyleByGridPosition(inGrid[1]);
-                    this._selectedTiles.push(this._firstSelectedTile);
-
-                    this.checkNeighbors(inGrid[1], null); // Проверка рядом стоящих тайлов после клика
-                    // this.getBomb(inGrid[1]); // взрыв
-                }
-                else
-                {
-                    log("Out Of Griid");
-                    this._progressPanelScript.setProgress(this._progressPanelScript.getProgress() + 10, true);
-                }
-                
-                // info(this._blocks.length, this._blocks.toString());
-                // this._blocks.sort
-
-                // INFO: опредялять индекс по в Shape по ячейке
-            }
-            if (this._currentState == GameState.WAIT_SWAP)
-            {
-                let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
-                let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
-                let inGrid:[Position, Vec2] = this._grid.screenToGrid(screenPoint2D);
-                
-                if (inGrid[0] == Position.IN && this._shapeRectangle.isInShape(inGrid[1]))
-                {
-                    this._searchStackDepth = 0;
-                    this._checkedPositions = new Array<Vec2>();
-
-                    this._firstSelectedTile = this.getTyleByGridPosition(inGrid[1]);
-                    this._selectedTiles.push(this._firstSelectedTile);
-
-                    this.checkSwap(inGrid[1]);
-                }
-            }
-        }
-
-        // тестовый if
-        if (event.getButton() == 1)
-        {
-            console.log("==========================");
-            let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
-            let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
-            let inGrid:[Position, Vec2] = this._grid.screenToGrid(screenPoint2D);
-            
-            if (inGrid[0] == Position.IN && this._shapeRectangle.isInShape(inGrid[1]))
-            {
-                console.log(inGrid[1].toString());
-                console.log("In Griid", this.getTyleByGridPosition(inGrid[1]));
-            }
-            else
-            {
-                console.log("Out Of Griid");
-            }
-        }
-
-        // тестовый if
-        if (event.getButton() == 2)
-        {
-            this.setState(GameState.LOAD_LEVEL);
-        }
-
-        // тестовый if
-        if (event.getButton() == 3)
-        {
-            this.shuffle();
-        }
-    }
-
     private removeSelectedTiles():void
     {
         if (this._selectedTiles.length >= this.minBlocksGroup)
@@ -363,7 +413,7 @@ export class GameScript extends Component
         }
         else
         {
-            this.setState(GameState.WAIT_MOUSE_CLICK);
+            this.setState(GameState.WAIT_SIMPLE_CLICK);
         }
 
         this._selectedTiles = new Array<Tile>();
@@ -500,7 +550,7 @@ export class GameScript extends Component
         }
         else
         {
-            this.setState(GameState.WAIT_MOUSE_CLICK);
+            this.setState(GameState.WAIT_SIMPLE_CLICK);
         }
     }
 
@@ -650,7 +700,7 @@ export class GameScript extends Component
                 {
                     log("OK OK OK");
                     this._swapPos = null;
-                    this.setState(GameState.WAIT_MOUSE_CLICK);
+                    this.setState(GameState.WAIT_SIMPLE_CLICK);
                     break;
                 }
             }

@@ -1,5 +1,4 @@
 import { _decorator, Component, Graphics, Node, tween, UITransform, Vec2, Vec3 } from 'cc';
-import { Cell } from './Honeycomb/Cells/Cell';
 const { ccclass, property } = _decorator;
 
 @ccclass('FieldPanelScript')
@@ -26,12 +25,6 @@ export class FieldPanelScript extends Component
         g.stroke();
     }
 
-    public setSize(size:Vec2, cell:Cell):void
-    {
-        const uiTransform = this.fieldBG.getComponent(UITransform);
-        uiTransform.setContentSize((this.sizeScale * (size.x * cell.width)) / 100, (this.sizeScale * (size.y * cell.height)) / 100);
-    }
-
     public clear():void
     {
         this.content.removeAllChildren();
@@ -47,8 +40,13 @@ export class FieldPanelScript extends Component
         this.content.removeChild(node);
     }
 
-    public show():void
+    public show(size:Vec2, cellSize:Vec2):void
     {
+        this.node.active = true;
+
+        const uiTransform = this.fieldBG.getComponent(UITransform);
+        uiTransform.setContentSize((this.sizeScale * (size.x * cellSize.x)) / 100, (this.sizeScale * (size.y * cellSize.x)) / 100);
+
         this.node.setScale(new Vec3(0, 0, 1));
 
         tween(this.node)

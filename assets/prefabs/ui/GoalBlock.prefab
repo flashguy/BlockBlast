@@ -52,8 +52,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
+      "x": 0.9,
+      "y": 0.9,
       "z": 1
     },
     "_mobility": 0,
@@ -99,8 +99,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.4,
-      "y": 0.4,
+      "x": 1,
+      "y": 1,
       "z": 1
     },
     "_mobility": 0,
@@ -178,7 +178,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -56.132,
+      "y": -32.861,
       "z": 0
     },
     "_lrot": {
@@ -218,7 +218,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 39.059967041015625,
+      "width": 117.17999267578125,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -257,8 +257,8 @@
     "_string": "999",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 20,
-    "_fontSize": 20,
+    "_actualFontSize": 60,
+    "_fontSize": 60,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,
@@ -399,6 +399,7 @@
       "__id__": 0
     },
     "fileId": "92Ady9drdA57LA1TWIsTBM",
+    "instance": null,
     "targetOverrides": null
   }
 ]

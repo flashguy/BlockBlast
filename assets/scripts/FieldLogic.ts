@@ -1,8 +1,8 @@
 import { _decorator, Component, Node } from 'cc';
 const { ccclass, property } = _decorator;
 
-@ccclass('PlayingFieldController')
-export class PlayingFieldController
+@ccclass('FieldLogic')
+export class FieldLogic
 {
     
 }

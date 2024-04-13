@@ -12,7 +12,7 @@ export class ScorePanelScript extends Component
 
     start()
     {
-        this.node.active = false;
+        
     }
 
     update(deltaTime: number)

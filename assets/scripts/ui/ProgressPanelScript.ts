@@ -23,7 +23,7 @@ export class ProgressPanelScript extends Component
 
     start()
     {
-        this.node.setPosition(this.hidePosition);
+        
     }
 
     update(deltaTime: number)
@@ -33,6 +33,9 @@ export class ProgressPanelScript extends Component
 
     public show():void
     {
+        this.node.active = true;
+        this.node.setPosition(this.hidePosition);
+
         tween(this.node)
             .to(0.4, {position: this.showPosition}, { easing: 'linear' })
             .call(() => {
@@ -46,7 +49,7 @@ export class ProgressPanelScript extends Component
         tween(this.node)
             .to(0.4, {position: this.hidePosition}, { easing: 'linear' })
             .call(() => {
-                
+                this.node.active = false;
             })
             .start();
     }
