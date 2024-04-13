@@ -7,6 +7,11 @@ import { RectangleGrid } from './Honeycomb/Grids/RectangleGrid';
 import { ShapeBuilder } from './Honeycomb/Shapes/ShapeBuilder';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
+import { FieldPanelScript } from './FieldPanelScript';
+import { ProgressPanelScript } from './ui/ProgressPanelScript';
+import { ScorePanelScript } from './ui/ScorePanelScript';
+import { LevelPanelScript } from './ui/LevelPanelScript';
+import { Level } from './Level';
 const { ccclass, property } = _decorator;
 
 enum GameState
@@ -23,7 +28,16 @@ enum GameState
 export class GameScript extends Component
 {
     @property(Node)
-    private field:Node = null;
+    private fieldPanel:Node = null;
+
+    @property(Node)
+    private progressPanel:Node = null;
+
+    @property(Node)
+    private scorePanel:Node = null;
+
+    @property(Node)
+    private levelPanel:Node = null;
 
     @property([Prefab])
     private blokPrefabs:Prefab[] = [];
@@ -33,6 +47,14 @@ export class GameScript extends Component
 
     @property
     private maxShuffleTry:number = 3;
+
+    @property([Level])
+    private levels:Level[] = [];
+
+    private _fieldPanelScript:FieldPanelScript;
+    private _progressPanelScript:ProgressPanelScript;
+    private _scorePanelScript:ScorePanelScript;
+    private _levelPanelScript:LevelPanelScript;
 
     private _cell:Cell;
     private _grid:Grid;
@@ -59,6 +81,11 @@ export class GameScript extends Component
 
     start()
     {
+        this._fieldPanelScript = this.fieldPanel.getComponent(FieldPanelScript) as FieldPanelScript;
+        this._progressPanelScript = this.progressPanel.getComponent(ProgressPanelScript) as ProgressPanelScript;
+        this._scorePanelScript = this.scorePanel.getComponent(ScorePanelScript) as ScorePanelScript;
+        this._levelPanelScript = this.levelPanel.getComponent(LevelPanelScript) as LevelPanelScript;
+
         this.setState(GameState.LOAD_LEVEL);
 
         input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
@@ -106,11 +133,11 @@ export class GameScript extends Component
 
     private loadLevel():void
     {
+        let fieldSize:Vec2 = new Vec2(8, 8);
+
         this._tiles = new Array<Tile>();
 
-        this.field.removeAllChildren();
-
-        let fieldSize:Vec2 = new Vec2(9, 9);
+        this._fieldPanelScript.clear();
 
         this._cell = new CellFromRectangle(85.5, 85.5);
         this._grid = new RectangleGrid(this._cell, new Vec2((fieldSize.x % 2 == 0 ? 0 : -this._cell.halfWidth), (fieldSize.y % 2 == 0 ? 0 : -this._cell.halfHeight)), new Vec2());
@@ -123,14 +150,14 @@ export class GameScript extends Component
 
         this.setState(GameState.WAIT_MOUSE_CLICK);
 
-        const g = this.field.getComponent(Graphics);
-        g.lineWidth = 5;
-        g.moveTo(0, 1000)
-        g.lineTo(0, -1000);
-        g.moveTo(-1000, 0);
-        g.lineTo(1000, 0);
-        g.close();
-        g.stroke();
+        this._fieldPanelScript.setSize(fieldSize.clone(), this._cell);
+        this._fieldPanelScript.show();
+
+        this._progressPanelScript.show();
+        this._progressPanelScript.setProgress(0, false);
+
+        this._scorePanelScript.show(10, 222);
+        this._levelPanelScript.show(1);
     }
 
     private createTile(cellPoint:Vec2):Tile
@@ -143,7 +170,7 @@ export class GameScript extends Component
         prefab.setScale(new Vec3(0.5, 0.5, 1));
         prefab.setPosition(new Vec3(inScreen.x, inScreen.y, 0));
 
-        this.field.addChild(prefab);
+        this._fieldPanelScript.add(prefab);
 
         let tile:Tile = new Tile();
         tile.pos = cellPoint;
@@ -263,6 +290,7 @@ export class GameScript extends Component
                 else
                 {
                     log("Out Of Griid");
+                    this._progressPanelScript.setProgress(this._progressPanelScript.getProgress() + 10, true);
                 }
                 
                 // info(this._blocks.length, this._blocks.toString());
@@ -328,7 +356,7 @@ export class GameScript extends Component
             for (let i:number = 0; i < this._selectedTiles.length; i++)
             {
                 this._tiles.splice(this._tiles.indexOf(this._selectedTiles[i]), 1);
-                this.field.removeChild(this._selectedTiles[i].node);
+                this._fieldPanelScript.remove(this._selectedTiles[i].node);
             }
 
             this.setState(GameState.SPAWN_TILES);
