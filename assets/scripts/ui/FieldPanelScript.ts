@@ -16,14 +16,14 @@ export class FieldPanelScript extends HiddenPanel
 
     start()
     {
-        const g = this.content.getComponent(Graphics);
+        /*const g = this.content.getComponent(Graphics);
         g.lineWidth = 5;
         g.moveTo(0, 1000)
         g.lineTo(0, -1000);
         g.moveTo(-1000, 0);
         g.lineTo(1000, 0);
         g.close();
-        g.stroke();
+        g.stroke();*/
     }
 
     public clear():void

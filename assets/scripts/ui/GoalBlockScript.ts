@@ -24,5 +24,3 @@ export class GoalBlockScript extends Component
         this.block.addChild(block);
     }
 }
-
-

@@ -5025,7 +5025,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 722.679931640625,
+      "width": 64.47999572753906,
       "height": 167.2
     },
     "_anchorPoint": {
@@ -5055,7 +5055,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "проигрыш",
+    "_string": "-",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 120,
@@ -5155,6 +5155,9 @@
       "x": 0,
       "y": 0,
       "z": 1
+    },
+    "label": {
+      "__id__": 124
     },
     "_id": "e9hEJDFC1Ozba42FOn0ZIa"
   },
@@ -6798,7 +6801,7 @@
   {
     "__type__": "Level",
     "label": 1,
-    "moves": 10,
+    "moves": 30,
     "goals": [
       {
         "__id__": 170

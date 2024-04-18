@@ -31,7 +31,8 @@ enum GameState
     SPAWN_NEW_TILES,
     CHECK_NEED_SHUFFLE,
     WAIT_SWAP,
-    FAIL_GAME
+    FAIL_GAME,
+    NO_MOVES
 }
 
 export class GameStateToString
@@ -51,6 +52,7 @@ export class GameStateToString
             case GameState.CHECK_NEED_SHUFFLE:      return "CHECK_NEED_SHUFFLE";
             case GameState.WAIT_SWAP:               return "WAIT_SWAP";
             case GameState.FAIL_GAME:               return "FAIL_GAME";
+            case GameState.NO_MOVES:                return "NO_MOVES";
             default: return "В перечислении GameState нет ключа с таким именем '" + key + "'";
         }
     }
@@ -128,12 +130,12 @@ export class GameScript extends Component
     private _maxLevelBlocksProgress:number = 0;
     private _currentLevelBlocksProgress:number = 0;
     private _goalsBlock:Map<number, number> = new Map<number, number>();
+    private _currentShuffleTry:number = 0;
+    private _startedAnimations:number = 0;
 
     
     
     
-    private _currentShuffleTry:number = 0;
-    private _startedAnimations:number = 0;
     
     private _bombDistance:number = 2;
     private _swapPos:Vec2;
@@ -210,6 +212,7 @@ export class GameScript extends Component
             case GameState.CHECK_NEED_SHUFFLE:      this.checkNeedShuffle();    break;
             case GameState.WAIT_SWAP:               break;
             case GameState.FAIL_GAME:               this.failGame();             break;
+            case GameState.NO_MOVES:                this.noMoves();              break;
         }
     }
 
@@ -347,13 +350,13 @@ export class GameScript extends Component
         
         if (this._movesLeft == 0 && this._currentLevelBlocksProgress > 0)
         {
-            log("END FAIL_GAME!")
-            this._currentLevel--;
             this.setState(GameState.FAIL_GAME);
         }
         else if (this._currentLevelBlocksProgress == 0)
         {
-            log("WIN!")
+            // INFO: ПОБЕДА
+            this._labelPanelScript.setLebel("Победа", 80);
+            this._labelPanelScript.showWithScale();
         }
         else
         {
@@ -391,19 +394,28 @@ export class GameScript extends Component
 
     private checkNeedShuffle():void
     {
-        // log("ПРОВЕРКА ХОДОВ. ПОПЫТКА:", this._currentShuffleTry);
-
         if (this._fieldLogic.checkNeedShuffle())
         {
             if (this._currentShuffleTry == this._fieldLogic.maxShuffleTry)
             {
-                warn("НЕТ ХОДОВ. ПРОИГРЫШ :(");
+                // INFO: ЗАКОНЧИЛИСЬ ПОПЫТКИ ПЕРЕМЕШИВАНИЯ. ИГРА ОКОНЧЕНА.
+                this.setState(GameState.NO_MOVES);
             }
             else
             {
-                // warn("НЕТ ХОДОВ");
-                this._currentShuffleTry++;
-                this.shuffle();
+                // INFO: НЕТ ХОДОВ
+                this._labelPanelScript.setLebel("Нет ходов", 80);
+                this._labelPanelScript.showWithScale();
+                
+                let interval:number = setInterval(() => {
+                    clearInterval(interval);
+                    
+                    this._labelPanelScript.hideWithScale(() => {
+                        this._currentShuffleTry++;
+                        this.shuffle();
+                    });
+                }, 800);
+                
             }
         }
         else
@@ -414,46 +426,91 @@ export class GameScript extends Component
 
     private shuffle():void
     {
-        log("ПЕРЕМЕШИВАНИЕ");
-        this._fieldLogic.shuffle();
-
-        for (let i:number = 0; i < this._fieldLogic.tiles.length; i++)
-        {
-            this._startedAnimations++;
-            let currentTile:Tile = this._fieldLogic.tiles[i];
-            currentTile.node.setSiblingIndex(i);
+        this._labelPanelScript.setLebel("Тасуем", 80);
+        this._labelPanelScript.showWithScale();
+        
+        let interval:number = setInterval(() => {
+            clearInterval(interval);
             
-            let inScreen:Vec2 = this._fieldLogic.grid.gridToScreen(currentTile.pos);
-            tween(currentTile.node)
-            .to(0.4, {position: new Vec3(inScreen.x, inScreen.y, 0)}, { easing: 'linear' })
-            .call(() => {
-                this._startedAnimations--;
+            this._fieldLogic.shuffle();
 
-                if (this._startedAnimations == 0)
-                    this.checkNeedShuffle();
-            })
-            .start();
-        }
+            for (let i:number = 0; i < this._fieldLogic.tiles.length; i++)
+            {
+                this._startedAnimations++;
+                let currentTile:Tile = this._fieldLogic.tiles[i];
+                currentTile.node.setSiblingIndex(i);
+                
+                let inScreen:Vec2 = this._fieldLogic.grid.gridToScreen(currentTile.pos);
+                tween(currentTile.node)
+                .to(0.8, {position: new Vec3(inScreen.x, inScreen.y, 0)}, { easing: 'backInOut' })
+                .call(() => {
+                    this._startedAnimations--;
+
+                    if (this._startedAnimations == 0)
+                    {
+                        this._labelPanelScript.hideWithScale(() => {
+                            this.checkNeedShuffle();
+                        });
+                    }
+                })
+                .start();
+            }
+        }, 100);
     }
 
     private failGame():void
     {
+        this._currentLevel--;
+        this._labelPanelScript.setLebel("Эх, Ещё бы чуть-чуть", 80);
         this._labelPanelScript.showWithScale();
 
         let interval:number = setInterval(() => {
             clearInterval(interval);
             
-            this._progressPanelScript.hideWithMove();
-            this._pauseButtonPanelScript.hideWithMove();
-            this._goalsPanelScript.hideWithMove();
-            this._movesPanelScript.hideWithMove();
-            this._fieldPanelScript.hideWithScale();
-            this._levelScorePanelScript.hideWithMove();
-            this._moneyPanelScript.hideWithMove();
-            this._labelPanelScript.hideWithScale();
+            this._labelPanelScript.hideWithScale(() => {
+                this._progressPanelScript.hideWithMove();
+                this._pauseButtonPanelScript.hideWithMove();
+                this._goalsPanelScript.hideWithMove();
+                this._movesPanelScript.hideWithMove();
+                this._fieldPanelScript.hideWithScale();
+                this._levelScorePanelScript.hideWithMove();
+                this._moneyPanelScript.hideWithMove(() => {
+                    this.setState(GameState.SHOW_LEVEL_WINDOW);
+                });
+            });
+        }, 1000);
+    }
 
-            this.setState(GameState.SHOW_LEVEL_WINDOW);
-        }, 2000);
+    private noMoves():void
+    {
+        this._currentLevel--;
+        this._labelPanelScript.setLebel("Увы, больше\nходов нет", 80);
+        this._labelPanelScript.showWithScale();
+
+        let interval:number = setInterval(() => {
+            clearInterval(interval);
+            
+            this._labelPanelScript.hideWithScale(() => {
+                this._labelPanelScript.setLebel("конец игры", 80);
+                this._labelPanelScript.showWithScale();
+
+                let interval:number = setInterval(() => {
+                    clearInterval(interval);
+                    
+                    this._labelPanelScript.hideWithScale(() => {
+                        this._progressPanelScript.hideWithMove();
+                        this._pauseButtonPanelScript.hideWithMove();
+                        this._goalsPanelScript.hideWithMove();
+                        this._movesPanelScript.hideWithMove();
+                        this._fieldPanelScript.hideWithScale();
+                        this._levelScorePanelScript.hideWithMove();
+                        this._moneyPanelScript.hideWithMove(() => {
+                            this.setState(GameState.SHOW_LEVEL_WINDOW);
+                        });
+                    });
+                }, 1000);
+            });
+        }, 1000);
     }
 
     private onMouseDown(event:EventMouse):void
@@ -528,6 +585,12 @@ export class GameScript extends Component
         if (event.getButton() == 3)
         {
             this.shuffle();
+        }
+        
+        // тестовый if
+        if (event.getButton() == 4)
+        {
+            this.checkNeedShuffle();
         }
     }
 

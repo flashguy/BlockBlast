@@ -56,5 +56,3 @@ export class MainMenuScript extends Component
         this.progressBar.progress = completedCount / totalCount;
     }
 }
-
-

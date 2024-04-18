@@ -38,5 +38,3 @@ export class GoalItemScript extends Component
         this.label.string = value.toString();
     }
 }
-
-
