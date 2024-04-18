@@ -9,7 +9,6 @@ import { FieldPanelScript } from './ui/FieldPanelScript';
 import { FieldLogic } from './FieldLogic';
 import { PauseButtonPanelScript } from './ui/PauseButtonPanelScript';
 import { GoalsPanelScript } from './ui/GoalsPanelScript';
-import { EndGamePanelScript } from './ui/EndGamePanelScript';
 import { MovesPaneScript } from './ui/MovesPanelScript';
 import { MoneyPanelScript } from './ui/MoneyPanelScript';
 import { BonusPanelScript } from './ui/BonusPanelScript';
@@ -17,6 +16,7 @@ import { LevelScorePanelScript } from './ui/LevelScorePanelScript';
 import { RangeValue } from './RangeValue';
 import { RangeVerifier } from './RangeVerifier';
 import { BlocksPrefabs } from './BlocksPrefabs';
+import { LabelPanelScript } from './ui/LabelPanelScript';
 const { ccclass, property } = _decorator;
 
 enum GameState
@@ -81,7 +81,7 @@ export class GameScript extends Component
     private mavesPanel:Node = null;
 
     @property(Node)
-    private endGamePanel:Node = null;
+    private labelPanel:Node = null;
 
     @property(Node)
     private moneyPanel:Node = null;
@@ -112,7 +112,7 @@ export class GameScript extends Component
     private _pauseButtonPanelScript:PauseButtonPanelScript;
     private _goalsPanelScript:GoalsPanelScript;
     private _movesPanelScript:MovesPaneScript;
-    private _endGamePanelScript:EndGamePanelScript;
+    private _labelPanelScript:LabelPanelScript;
     private _moneyPanelScript:MoneyPanelScript;
     private _levelScorePanelScript:LevelScorePanelScript;
     private _bonusPanelScript:BonusPanelScript;
@@ -155,7 +155,7 @@ export class GameScript extends Component
         this._pauseButtonPanelScript = this.pausePanel.getComponent(PauseButtonPanelScript) as PauseButtonPanelScript;
         this._goalsPanelScript = this.goalsPanel.getComponent(GoalsPanelScript) as GoalsPanelScript;
         this._movesPanelScript = this.mavesPanel.getComponent(MovesPaneScript) as MovesPaneScript;
-        this._endGamePanelScript = this.endGamePanel.getComponent(EndGamePanelScript) as EndGamePanelScript;
+        this._labelPanelScript = this.labelPanel.getComponent(LabelPanelScript) as LabelPanelScript;
         this._moneyPanelScript = this.moneyPanel.getComponent(MoneyPanelScript) as MoneyPanelScript;
         this._levelScorePanelScript = this.levelScorePanel.getComponent(LevelScorePanelScript) as LevelScorePanelScript;
         this._bonusPanelScript = this.bonusPanel.getComponent(BonusPanelScript) as BonusPanelScript;
@@ -226,7 +226,8 @@ export class GameScript extends Component
         if (this._currentLevel < this.levels.length)
         {
             this._currentLevelData = this.levels[this._currentLevel];
-            this._levelPanelScript.show(this._currentLevelData, () => { this.setState(GameState.START_LEVEL); });
+            this._levelPanelScript.init(this._currentLevelData, () => { this.setState(GameState.START_LEVEL); });
+            this._levelPanelScript.showWithScale();
         }
     }
 
@@ -251,16 +252,20 @@ export class GameScript extends Component
         
         this._currentLevelBlocksProgress = this._maxLevelBlocksProgress;
 
-        this._progressPanelScript.show();
         this._progressPanelScript.setProgress(0, false);
-        this._pauseButtonPanelScript.show();
-        this._goalsPanelScript.show(this._currentLevelData);
-        this._movesPanelScript.show(this._currentLevelData.moves);
-        this._fieldPanelScript.show(this._fieldLogic.getFieldSize, this._fieldLogic.getCellSize);
+        this._goalsPanelScript.init(this._currentLevelData);
+        this._movesPanelScript.setValue(this._currentLevelData.moves);
+        this._fieldPanelScript.init(this._fieldLogic.getFieldSize, this._fieldLogic.getCellSize);
         this._levelScorePanelScript.setValue(0);
-        this._levelScorePanelScript.show();
         this._moneyPanelScript.setValue(0);
-        this._moneyPanelScript.show();
+
+        this._progressPanelScript.showWithMove();
+        this._pauseButtonPanelScript.showWithMove();
+        this._goalsPanelScript.showWithMove();
+        this._movesPanelScript.showWithMove();
+        this._fieldPanelScript.showWithScale();
+        this._levelScorePanelScript.showWithMove();
+        this._moneyPanelScript.showWithMove();
 
         this.setState(GameState.CREATE_LEVEL);
     }
@@ -433,19 +438,19 @@ export class GameScript extends Component
 
     private failGame():void
     {
-        this._endGamePanelScript.show();
+        this._labelPanelScript.showWithScale();
 
         let interval:number = setInterval(() => {
             clearInterval(interval);
             
-            this._progressPanelScript.hide();
-            this._pauseButtonPanelScript.hide();
-            this._goalsPanelScript.hide();
-            this._movesPanelScript.hide();
-            this._fieldPanelScript.hide();
-            this._levelScorePanelScript.hide();
-            this._moneyPanelScript.hide();
-            this._endGamePanelScript.hide();
+            this._progressPanelScript.hideWithMove();
+            this._pauseButtonPanelScript.hideWithMove();
+            this._goalsPanelScript.hideWithMove();
+            this._movesPanelScript.hideWithMove();
+            this._fieldPanelScript.hideWithScale();
+            this._levelScorePanelScript.hideWithMove();
+            this._moneyPanelScript.hideWithMove();
+            this._labelPanelScript.hideWithScale();
 
             this.setState(GameState.SHOW_LEVEL_WINDOW);
         }, 2000);

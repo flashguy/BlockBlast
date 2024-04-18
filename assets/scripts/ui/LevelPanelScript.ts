@@ -1,10 +1,11 @@
 import { _decorator, Component, instantiate, Label, log, Node, Prefab, tween, Vec3 } from 'cc';
 import { Level } from '../Level';
 import { GoalBlockScript } from './GoalBlockScript';
+import { HiddenPanel } from './HiddenPanel';
 const { ccclass, property } = _decorator;
 
 @ccclass('LevelPanelScript')
-export class LevelPanelScript extends Component
+export class LevelPanelScript extends HiddenPanel
 {
     @property(Prefab)
     private goalPrefab:Prefab;
@@ -16,11 +17,10 @@ export class LevelPanelScript extends Component
     private goals:Node;
 
     private _hideCallback:Function;
-
-    public show(level:Level, hideCallback:Function):void
+    
+    public init(level:Level, hideCallback:Function):void
     {
         this._hideCallback = hideCallback;
-        this.node.active = true;
         this.labelLevel.string = level.label.toString();
 
         this.goals.removeAllChildren();
@@ -37,29 +37,10 @@ export class LevelPanelScript extends Component
 
             this.goals.addChild(goal);
         }
-
-        this.node.setScale(new Vec3(0, 0, 1));
-
-        tween(this.node)
-            .to(0.4, {scale: new Vec3(0.5, 0.5, 1)}, { easing: 'linear' })
-            .call(() => {
-                
-            })
-            .start();
     }
 
     public hide():void
     {
-        tween(this.node)
-            .to(0.2, {scale: new Vec3(0, 0, 1)}, { easing: 'linear' })
-            .call(() => {
-                if (this._hideCallback)
-                    this._hideCallback();
-
-                this.node.active = false;
-            })
-            .start();
+        this.hideWithScale(this._hideCallback);
     }
 }
-
-

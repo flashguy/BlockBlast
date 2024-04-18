@@ -1,17 +1,12 @@
 import { _decorator, Component, log, Node, Tween, tween, UITransform, Vec3 } from 'cc';
+import { HiddenPanel } from './HiddenPanel';
 const { ccclass, property } = _decorator;
 
 @ccclass('ProgressPanelScript')
-export class ProgressPanelScript extends Component
+export class ProgressPanelScript extends HiddenPanel
 {
     @property(Node)
     private progressNode:Node = null;
-
-    @property(Vec3)
-    private showPosition:Vec3 = new Vec3(0, 407, 0); // 670;
-
-    @property(Vec3)
-    private hidePosition:Vec3 = new Vec3(0, 600, 0); // 670
 
     @property
     private tweenSpeed:number = 200;
@@ -20,39 +15,6 @@ export class ProgressPanelScript extends Component
     private _progressVec:Vec3 = new Vec3();
     private _progress:number = 0;
     private _tweenDuration:number = 1;
-
-    start()
-    {
-        
-    }
-
-    update(deltaTime: number)
-    {
-        
-    }
-
-    public show():void
-    {
-        this.node.active = true;
-        this.node.setPosition(this.hidePosition);
-
-        tween(this.node)
-            .to(0.4, {position: this.showPosition}, { easing: 'linear' })
-            .call(() => {
-                
-            })
-            .start();
-    }
-
-    public hide():void
-    {
-        tween(this.node)
-            .to(0.4, {position: this.hidePosition}, { easing: 'linear' })
-            .call(() => {
-                this.node.active = false;
-            })
-            .start();
-    }
 
     public setProgress(value:number, animate:boolean)
     {
@@ -68,7 +30,7 @@ export class ProgressPanelScript extends Component
             if (this._tween)
                 this._tween.stop();
     
-            tween(this.progressNode)
+            this._tween = tween(this.progressNode)
                 .to(this._tweenDuration, {position: new Vec3(this._progressVec)}, { easing: 'linear' })
                 .call(() => {
                     
@@ -86,5 +48,3 @@ export class ProgressPanelScript extends Component
         return this._progress;
     }
 }
-
-

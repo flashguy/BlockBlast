@@ -1,8 +1,9 @@
 import { _decorator, Component, Graphics, Node, tween, UITransform, Vec2, Vec3 } from 'cc';
+import { HiddenPanel } from './HiddenPanel';
 const { ccclass, property } = _decorator;
 
 @ccclass('FieldPanelScript')
-export class FieldPanelScript extends Component
+export class FieldPanelScript extends HiddenPanel
 {
     @property(Node)
     private fieldBG:Node = null;
@@ -40,32 +41,11 @@ export class FieldPanelScript extends Component
         this.content.removeChild(node);
     }
 
-    public show(size:Vec2, cellSize:Vec2):void
+    public init(size:Vec2, cellSize:Vec2):void
     {
         this.node.active = true;
 
         const uiTransform = this.fieldBG.getComponent(UITransform);
         uiTransform.setContentSize((this.sizeScale * (size.x * cellSize.x)) / 100, (this.sizeScale * (size.y * cellSize.x)) / 100);
-
-        this.node.setScale(new Vec3(0, 0, 1));
-
-        tween(this.node)
-            .to(0.4, {scale: new Vec3(1, 1, 1)}, { easing: 'linear' })
-            .call(() => {
-                
-            })
-            .start();
-    }
-
-    public hide():void
-    {
-        tween(this.node)
-            .to(0.4, {scale: new Vec3(0, 0, 1)}, { easing: 'linear' })
-            .call(() => {
-                this.node.active = false;
-            })
-            .start();
     }
 }
-
-

@@ -234,7 +234,7 @@
     "mavesPanel": {
       "__id__": 112
     },
-    "endGamePanel": {
+    "labelPanel": {
       "__id__": 121
     },
     "moneyPanel": {
@@ -609,6 +609,30 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "showPosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "hidePosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
     "fieldBG": {
       "__id__": 6
     },
@@ -1305,9 +1329,6 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "progressNode": {
-      "__id__": 25
-    },
     "showPosition": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -1319,6 +1340,21 @@
       "x": 0,
       "y": 603,
       "z": 0
+    },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 0.5,
+      "y": 0.5,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
+    "progressNode": {
+      "__id__": 25
     },
     "tweenSpeed": 500,
     "_id": "85UsgTK1hC55taxaheDbtO"
@@ -2794,6 +2830,30 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "showPosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "hidePosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
     "labelLevel": {
       "__id__": 45
     },
@@ -3885,6 +3945,30 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "showPosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "hidePosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 0.5,
+      "y": 0.5,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
     "goalPrefab": {
       "__uuid__": "12c60a4d-4a28-432c-a410-f3dc0cd4689d",
       "__expectedType__": "cc.Prefab"
@@ -4319,6 +4403,18 @@
       "y": 467,
       "z": 0
     },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
     "_id": "a15FObT4JJTZZCopMOG158"
   },
   {
@@ -4401,10 +4497,6 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "goalPrefab": {
-      "__uuid__": "15845ddd-1fd6-4d77-b1ce-4ca2402a3618",
-      "__expectedType__": "cc.Prefab"
-    },
     "showPosition": {
       "__type__": "cc.Vec3",
       "x": -550,
@@ -4416,6 +4508,22 @@
       "x": -800,
       "y": 280,
       "z": 0
+    },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 0.7,
+      "y": 0.7,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
+    "goalPrefab": {
+      "__uuid__": "15845ddd-1fd6-4d77-b1ce-4ca2402a3618",
+      "__expectedType__": "cc.Prefab"
     },
     "_id": "86k7pUClxGwpAB+K1Neqa/"
   },
@@ -4776,9 +4884,6 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "label": {
-      "__id__": 118
-    },
     "showPosition": {
       "__type__": "cc.Vec3",
       "x": -550,
@@ -4791,11 +4896,26 @@
       "y": 380,
       "z": 0
     },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
+    "label": {
+      "__id__": 118
+    },
     "_id": "1bbkAOXXZBlp65wObVCdOf"
   },
   {
     "__type__": "cc.Node",
-    "_name": "EndGamePanel",
+    "_name": "LabelPanel",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -4806,7 +4926,7 @@
         "__id__": 122
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 125
@@ -5012,6 +5132,30 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "showPosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "hidePosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
     "_id": "e9hEJDFC1Ozba42FOn0ZIa"
   },
   {
@@ -5457,9 +5601,6 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "label": {
-      "__id__": 133
-    },
     "showPosition": {
       "__type__": "cc.Vec3",
       "x": -485.022,
@@ -5471,6 +5612,21 @@
       "x": -485.022,
       "y": 800,
       "z": 0
+    },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 0.5,
+      "y": 0.5,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
+    "label": {
+      "__id__": 133
     },
     "_id": "43P5WWMEVB9bB6yDqMlx1+"
   },
@@ -5805,9 +5961,6 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "label": {
-      "__id__": 145
-    },
     "showPosition": {
       "__type__": "cc.Vec3",
       "x": 525,
@@ -5819,6 +5972,21 @@
       "x": 525,
       "y": 800,
       "z": 0
+    },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 0.5,
+      "y": 0.5,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
+    "label": {
+      "__id__": 145
     },
     "_id": "20OPimzFZJ0Ipe2XBuN9sR"
   },
@@ -6601,6 +6769,30 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "showPosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "hidePosition": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "showScale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "hideScale": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
     "_id": "17tidk8blI5o3yeM6F2p/Z"
   },
   {

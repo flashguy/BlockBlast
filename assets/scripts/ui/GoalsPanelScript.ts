@@ -1,27 +1,20 @@
 import { _decorator, Component, instantiate, Node, Prefab, tween, Vec3 } from 'cc';
 import { Level } from '../Level';
 import { GoalItemScript } from './GoalItemScript';
+import { HiddenPanel } from './HiddenPanel';
 const { ccclass, property } = _decorator;
 
 @ccclass('GoalsPanelScript')
-export class GoalsPanelScript extends Component
+export class GoalsPanelScript extends HiddenPanel
 {
     @property(Prefab)
     private goalPrefab:Prefab;
 
-    @property(Vec3)
-    private showPosition:Vec3 = new Vec3(0, 0, 0);
-
-    @property(Vec3)
-    private hidePosition:Vec3 = new Vec3(0, 0, 0);
-
     private _goalsItemsScripts:Array<GoalItemScript> = new Array<GoalItemScript>();
 
-    public show(level:Level):void
+    public init(level:Level):void
     {
         this._goalsItemsScripts = new Array<GoalItemScript>();
-        this.node.active = true;
-        this.node.setPosition(this.hidePosition);
         this.node.removeAllChildren();
 
         for (let i = 0; i < level.goals.length; i++)
@@ -39,23 +32,6 @@ export class GoalsPanelScript extends Component
 
             this.node.addChild(goalItem);
         }
-
-        tween(this.node)
-            .to(0.4, {position: this.showPosition}, { easing: 'linear' })
-            .call(() => {
-                
-            })
-            .start();
-    }
-
-    public hide():void
-    {
-        tween(this.node)
-            .to(0.4, {position: this.hidePosition}, { easing: 'linear' })
-            .call(() => {
-                this.node.active = false;
-            })
-            .start();
     }
 
     public updateValues(goals:Map<number, number>):void
@@ -69,5 +45,3 @@ export class GoalsPanelScript extends Component
         }
     }
 }
-
-
