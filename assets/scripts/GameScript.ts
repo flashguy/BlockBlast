@@ -1,4 +1,4 @@
-import { _decorator, Component, EventMouse, input, Input, log, Node, tween, Vec2, Vec3, warn } from 'cc';
+import { _decorator, Component, EventMouse, input, Input, log, Node, Prefab, tween, Vec2, Vec3, warn } from 'cc';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
 import { ProgressPanelScript } from './ui/ProgressPanelScript';
@@ -7,6 +7,16 @@ import { LevelPanelScript } from './ui/LevelPanelScript';
 import { Level } from './Level';
 import { FieldPanelScript } from './ui/FieldPanelScript';
 import { FieldLogic } from './FieldLogic';
+import { PauseButtonPanelScript } from './ui/PauseButtonPanelScript';
+import { GoalsPanelScript } from './ui/GoalsPanelScript';
+import { EndGamePanelScript } from './ui/EndGamePanelScript';
+import { MovesPaneScript } from './ui/MovesPanelScript';
+import { MoneyPanelScript } from './ui/MoneyPanelScript';
+import { BonusPanelScript } from './ui/BonusPanelScript';
+import { LevelScorePanelScript } from './ui/LevelScorePanelScript';
+import { RangeValue } from './RangeValue';
+import { RangeVerifier } from './RangeVerifier';
+import { BlocksPrefabs } from './BlocksPrefabs';
 const { ccclass, property } = _decorator;
 
 enum GameState
@@ -17,9 +27,11 @@ enum GameState
     WAIT_SIMPLE_CLICK,
     SEARCH_TILES,
     REMOVE_SELECTED_TILES,
+    CHECK_END_GAME,
     SPAWN_NEW_TILES,
     CHECK_NEED_SHUFFLE,
     WAIT_SWAP,
+    FAIL_GAME
 }
 
 export class GameStateToString
@@ -34,9 +46,11 @@ export class GameStateToString
             case GameState.WAIT_SIMPLE_CLICK:       return "WAIT_SIMPLE_CLICK";
             case GameState.SEARCH_TILES:            return "SEARCH_TILES";
             case GameState.REMOVE_SELECTED_TILES:   return "REMOVE_SELECTED_TILES";
+            case GameState.CHECK_END_GAME:          return "CHECK_END_GAME";
             case GameState.SPAWN_NEW_TILES:         return "SPAWN_NEW_TILES";
             case GameState.CHECK_NEED_SHUFFLE:      return "CHECK_NEED_SHUFFLE";
             case GameState.WAIT_SWAP:               return "WAIT_SWAP";
+            case GameState.FAIL_GAME:               return "FAIL_GAME";
             default: return "В перечислении GameState нет ключа с таким именем '" + key + "'";
         }
     }
@@ -57,19 +71,63 @@ export class GameScript extends Component
     @property(Node)
     private levelPanel:Node = null;
 
+    @property(Node)
+    private pausePanel:Node = null;
+
+    @property(Node)
+    private goalsPanel:Node = null;
+
+    @property(Node)
+    private mavesPanel:Node = null;
+
+    @property(Node)
+    private endGamePanel:Node = null;
+
+    @property(Node)
+    private moneyPanel:Node = null;
+
+    @property(Node)
+    private levelScorePanel:Node = null;
+
+    @property(Node)
+    private bonusPanel:Node = null;
+
+    @property([Prefab])
+    private bloсkPrefabs:Prefab[] = [];
+
     @property([Level])
     private levels:Level[] = [];
+
+    @property([RangeValue])
+    private revardsMoney:RangeValue[] = [];
+
+    @property([RangeValue])
+    private revardsScore:RangeValue[] = [];
 
     private _fieldLogic:FieldLogic;
     private _fieldPanelScript:FieldPanelScript;
     private _progressPanelScript:ProgressPanelScript;
     private _scorePanelScript:ScorePanelScript;
     private _levelPanelScript:LevelPanelScript;
+    private _pauseButtonPanelScript:PauseButtonPanelScript;
+    private _goalsPanelScript:GoalsPanelScript;
+    private _movesPanelScript:MovesPaneScript;
+    private _endGamePanelScript:EndGamePanelScript;
+    private _moneyPanelScript:MoneyPanelScript;
+    private _levelScorePanelScript:LevelScorePanelScript;
+    private _bonusPanelScript:BonusPanelScript;
 
     private _currentState:GameState;
 
     private _currentLevel:number = -1;
     private _currentLevelData:Level = null;
+    private _movesLeft:number;
+    private _lastDeletedBlocksCount:number = 0;
+    private _rewardMoney:number = 0;
+    private _rewardScore:number = 0;
+    private _maxLevelBlocksProgress:number = 0;
+    private _currentLevelBlocksProgress:number = 0;
+    private _goalsBlock:Map<number, number> = new Map<number, number>();
 
     
     
@@ -87,11 +145,20 @@ export class GameScript extends Component
 
     start()
     {
+        BlocksPrefabs.setPrefabs(this.bloсkPrefabs);
+
         this._fieldLogic = this.node.getComponent(FieldLogic) as FieldLogic;
         this._fieldPanelScript = this.fieldPanel.getComponent(FieldPanelScript) as FieldPanelScript;
         this._progressPanelScript = this.progressPanel.getComponent(ProgressPanelScript) as ProgressPanelScript;
         this._scorePanelScript = this.scorePanel.getComponent(ScorePanelScript) as ScorePanelScript;
         this._levelPanelScript = this.levelPanel.getComponent(LevelPanelScript) as LevelPanelScript;
+        this._pauseButtonPanelScript = this.pausePanel.getComponent(PauseButtonPanelScript) as PauseButtonPanelScript;
+        this._goalsPanelScript = this.goalsPanel.getComponent(GoalsPanelScript) as GoalsPanelScript;
+        this._movesPanelScript = this.mavesPanel.getComponent(MovesPaneScript) as MovesPaneScript;
+        this._endGamePanelScript = this.endGamePanel.getComponent(EndGamePanelScript) as EndGamePanelScript;
+        this._moneyPanelScript = this.moneyPanel.getComponent(MoneyPanelScript) as MoneyPanelScript;
+        this._levelScorePanelScript = this.levelScorePanel.getComponent(LevelScorePanelScript) as LevelScorePanelScript;
+        this._bonusPanelScript = this.bonusPanel.getComponent(BonusPanelScript) as BonusPanelScript;
 
         input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
 
@@ -138,15 +205,23 @@ export class GameScript extends Component
             case GameState.WAIT_SIMPLE_CLICK:       break;
             case GameState.SEARCH_TILES:            break;
             case GameState.REMOVE_SELECTED_TILES:   this.removeSelectedTiles(); break;
+            case GameState.CHECK_END_GAME:          this.checkEndGame();        break;
             case GameState.SPAWN_NEW_TILES:         this.spawnNewTiles();       break;
-            case GameState.CHECK_NEED_SHUFFLE:      this.checkNeedShuffle();       break;
+            case GameState.CHECK_NEED_SHUFFLE:      this.checkNeedShuffle();    break;
             case GameState.WAIT_SWAP:               break;
+            case GameState.FAIL_GAME:               this.failGame();             break;
         }
+    }
+
+    public pause():void
+    {
+        
     }
 
     private showLevelWindow():void
     {
         this._currentLevel++;
+        // this._currentLevel = 2;
 
         if (this._currentLevel < this.levels.length)
         {
@@ -157,10 +232,35 @@ export class GameScript extends Component
 
     private startLevel():void
     {
+        this._movesLeft = this._currentLevelData.moves;
+        this._lastDeletedBlocksCount = 0;
+        this._rewardMoney = 0;
+        this._rewardScore = 0;
+        this._maxLevelBlocksProgress = 0;
+        this._currentLevelBlocksProgress = 0;
+        this._goalsBlock = new Map<number, number>();
+
+        for (let i = 0; i < this._currentLevelData.goals.length; i++)
+        {
+            let type:number = this._currentLevelData.goals[i].type;
+            let quantity:number = this._currentLevelData.goals[i].quantity;
+           
+            this._goalsBlock.set(type, quantity);
+            this._maxLevelBlocksProgress += quantity;
+        }
+        
+        this._currentLevelBlocksProgress = this._maxLevelBlocksProgress;
+
         this._progressPanelScript.show();
         this._progressPanelScript.setProgress(0, false);
-
+        this._pauseButtonPanelScript.show();
+        this._goalsPanelScript.show(this._currentLevelData);
+        this._movesPanelScript.show(this._currentLevelData.moves);
         this._fieldPanelScript.show(this._fieldLogic.getFieldSize, this._fieldLogic.getCellSize);
+        this._levelScorePanelScript.setValue(0);
+        this._levelScorePanelScript.show();
+        this._moneyPanelScript.setValue(0);
+        this._moneyPanelScript.show();
 
         this.setState(GameState.CREATE_LEVEL);
     }
@@ -175,8 +275,6 @@ export class GameScript extends Component
         this.setState(GameState.WAIT_SIMPLE_CLICK);
     }
 
-// this._scorePanelScript.show(10, 222);
-
     // Проверка рядом стоящих тайлов после клика
     private simpleClickAction(pos:Vec2):void
     {
@@ -190,20 +288,72 @@ export class GameScript extends Component
     {
         if (this._fieldLogic.selectedTiles.length >= this._fieldLogic.minBlocksGroup)
         {
+            this._lastDeletedBlocksCount = this._fieldLogic.selectedTiles.length;
+
             for (let i:number = 0; i < this._fieldLogic.selectedTiles.length; i++)
             {
+                let type:number = this._fieldLogic.selectedTiles[i].type;
+
+                if (this._goalsBlock.has(type))
+                {
+                    this._currentLevelBlocksProgress--;
+                    this._goalsBlock.set(type, this._goalsBlock.get(type) - 1);
+                }
+
                 this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(this._fieldLogic.selectedTiles[i]), 1);
                 this._fieldPanelScript.remove(this._fieldLogic.selectedTiles[i].node);
             }
 
-            this.setState(GameState.SPAWN_NEW_TILES);
+            this.setState(GameState.CHECK_END_GAME);
         }
         else
         {
             this.setState(GameState.WAIT_SIMPLE_CLICK);
         }
-
+        
         this._fieldLogic.clearSelectedTiles();
+    }
+
+    private checkEndGame():void
+    {
+        this._movesLeft--;
+        this._movesPanelScript.setValue(this._movesLeft);
+        
+        for (let i = 0; i < this.revardsMoney.length; i++)
+        {
+            if (RangeVerifier.verify(this._lastDeletedBlocksCount, this.revardsMoney[i]))
+            {
+                this._rewardMoney += this.revardsMoney[i].reward;
+                this._moneyPanelScript.setValue(this._rewardMoney);
+            }
+        }
+
+        for (let i = 0; i < this.revardsScore.length; i++)
+        {
+            if (RangeVerifier.verify(this._lastDeletedBlocksCount, this.revardsScore[i]))
+            {
+                this._rewardScore += this.revardsScore[i].reward;
+                this._levelScorePanelScript.setValue(this._rewardScore);
+            }
+        }
+
+        this._goalsPanelScript.updateValues(this._goalsBlock);
+        this._progressPanelScript.setProgress(100 - (this._currentLevelBlocksProgress * 100) / this._maxLevelBlocksProgress, true);
+        
+        if (this._movesLeft == 0 && this._currentLevelBlocksProgress > 0)
+        {
+            log("END FAIL_GAME!")
+            this._currentLevel--;
+            this.setState(GameState.FAIL_GAME);
+        }
+        else if (this._currentLevelBlocksProgress == 0)
+        {
+            log("WIN!")
+        }
+        else
+        {
+            this.setState(GameState.SPAWN_NEW_TILES);
+        }
     }
 
     private spawnNewTiles():void
@@ -236,7 +386,7 @@ export class GameScript extends Component
 
     private checkNeedShuffle():void
     {
-        log("ПРОВЕРКА ХОДОВ. ПОПЫТКА", this._currentShuffleTry);
+        // log("ПРОВЕРКА ХОДОВ. ПОПЫТКА:", this._currentShuffleTry);
 
         if (this._fieldLogic.checkNeedShuffle())
         {
@@ -246,7 +396,7 @@ export class GameScript extends Component
             }
             else
             {
-                warn("НЕТ ХОДОВ");
+                // warn("НЕТ ХОДОВ");
                 this._currentShuffleTry++;
                 this.shuffle();
             }
@@ -281,8 +431,34 @@ export class GameScript extends Component
         }
     }
 
+    private failGame():void
+    {
+        this._endGamePanelScript.show();
+
+        let interval:number = setInterval(() => {
+            clearInterval(interval);
+            
+            this._progressPanelScript.hide();
+            this._pauseButtonPanelScript.hide();
+            this._goalsPanelScript.hide();
+            this._movesPanelScript.hide();
+            this._fieldPanelScript.hide();
+            this._levelScorePanelScript.hide();
+            this._moneyPanelScript.hide();
+            this._endGamePanelScript.hide();
+
+            this.setState(GameState.SHOW_LEVEL_WINDOW);
+        }, 2000);
+    }
+
     private onMouseDown(event:EventMouse):void
     {
+        log("this._currentState =", GameStateToString.toString(this._currentState));
+        if (this._currentState == GameState.SHOW_LEVEL_WINDOW
+            || this._currentState == GameState.START_LEVEL
+            || this._currentState == GameState.CREATE_LEVEL)
+            return;
+
         log("=========== onMouseDown ===========");
         let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
         let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);

@@ -8,6 +8,7 @@ import { ShapeBuilder } from './Honeycomb/Shapes/ShapeBuilder';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
 import { FieldPanelScript } from './ui/FieldPanelScript';
+import { BlocksPrefabs } from './BlocksPrefabs';
 const { ccclass, property } = _decorator;
 
 @ccclass('FieldLogic')
@@ -15,9 +16,6 @@ export class FieldLogic extends Component
 {
     @property(Node)
     private fieldPanel:Node = null;
-
-    @property([Prefab])
-    private blokPrefabs:Prefab[] = [];
 
     @property
     private fieldSize:Vec2 = new Vec2(8, 8);
@@ -72,9 +70,9 @@ export class FieldLogic extends Component
     private createTile(cellPoint:Vec2):Tile
     {
         let inScreen:Vec2 = this.grid.gridToScreen(cellPoint);
-        let tileType:number = randomRangeInt(0, this.blokPrefabs.length);
+        let tileType:number = randomRangeInt(0, BlocksPrefabs.getLength());
         // let tileType:number = randomRangeInt(0, 3);
-        let blockPrefab:Node = instantiate(this.blokPrefabs[tileType]);
+        let blockPrefab:Node = instantiate(BlocksPrefabs.getBlockPrefabByType(tileType));
         blockPrefab.active = true;
         blockPrefab.setScale(new Vec3(0.5, 0.5, 1));
         blockPrefab.setPosition(new Vec3(inScreen.x, inScreen.y, 0));

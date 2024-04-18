@@ -8,6 +8,9 @@ export class Level
     @property
     public label:number = 0;
 
+    @property
+    public moves:number = 0;
+
     @property([Goal])
     public goals:Goal[] = [];
 }

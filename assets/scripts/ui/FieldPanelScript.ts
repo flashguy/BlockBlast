@@ -56,6 +56,16 @@ export class FieldPanelScript extends Component
             })
             .start();
     }
+
+    public hide():void
+    {
+        tween(this.node)
+            .to(0.4, {scale: new Vec3(0, 0, 1)}, { easing: 'linear' })
+            .call(() => {
+                this.node.active = false;
+            })
+            .start();
+    }
 }
 
 
