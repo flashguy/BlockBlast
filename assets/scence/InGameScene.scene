@@ -1512,8 +1512,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 670.7999267578125,
-      "height": 282
+      "width": 992.6399536132812,
+      "height": 181.2
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1542,13 +1542,13 @@
       "b": 47,
       "a": 255
     },
-    "_string": "Победа",
+    "_string": "Конец уровня",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 150,
-    "_fontSize": 150,
+    "_actualFontSize": 120,
+    "_fontSize": 120,
     "_fontFamily": "Arial",
-    "_lineHeight": 200,
+    "_lineHeight": 120,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {

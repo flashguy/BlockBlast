@@ -277,8 +277,6 @@ export class GameScript extends Component
                     this.gotoMainMenu();
                 });
             }, 1000);
-
-            
         }
     }
 
@@ -630,7 +628,7 @@ export class GameScript extends Component
     private failGame():void
     {
         this._currentLevel--;
-        this._labelPanelScript.setLebel("Эх, Ещё бы чуть-чуть", new math.Color(220, 59, 87, 255), 80);
+        this._labelPanelScript.setLebel("Эх, Ещё бы чуть-чуть", new math.Color(220, 59, 87, 255), 60);
         this._labelPanelScript.showWithScale();
 
         let interval:number = setInterval(() => {
