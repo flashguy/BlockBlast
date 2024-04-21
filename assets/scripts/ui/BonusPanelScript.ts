@@ -20,7 +20,7 @@ export class BonusPanelScript extends HiddenPanel
         for (let i = 0; i < bonuses.length; i++)
         {
             let bonus:Node = instantiate(this.bonusItem);
-            bonus.setPosition(new Vec3(0, (200 * i) - (((bonuses.length - 1) * 200) / 2)));
+            bonus.setPosition(new Vec3(0, (150 * i) - (((bonuses.length - 1) * 150) / 2)));
 
             let bonusScript:BonusItemScript = bonus.getComponent(BonusItemScript) as BonusItemScript;
             bonusScript.init(bonuses[i]);

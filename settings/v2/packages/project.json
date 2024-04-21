@@ -3,8 +3,8 @@
   "custom_joint_texture_layouts": [],
   "general": {
     "designResolution": {
-      "width": 1920,
-      "height": 1080
+      "width": 1280,
+      "height": 960
     }
   }
 }
