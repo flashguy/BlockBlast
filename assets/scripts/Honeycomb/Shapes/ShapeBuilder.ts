@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Vec2 } from 'cc';
+import { _decorator, Vec2 } from 'cc';
 import { Shape } from './Shape';
 import { Position } from '../Geometry/Enumerations';
 const { ccclass, property } = _decorator;

@@ -1,4 +1,4 @@
-import { _decorator, Color, Component, Label, math, Node, tween, Vec3 } from 'cc';
+import { _decorator, Color, Label, math } from 'cc';
 import { HiddenPanel } from './HiddenPanel';
 const { ccclass, property } = _decorator;
 

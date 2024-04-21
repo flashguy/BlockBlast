@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Label, log, Node, Prefab, tween, Vec3 } from 'cc';
+import { _decorator, instantiate, Label, Node, Prefab, Vec3 } from 'cc';
 import { Level } from '../Level';
 import { GoalBlockScript } from './GoalBlockScript';
 import { HiddenPanel } from './HiddenPanel';

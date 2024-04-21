@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, director, log, Node, ProgressBar, SceneAsset, tween, Vec3 } from 'cc';
+import { _decorator, Component, director, Node, ProgressBar, SceneAsset, tween, Vec3 } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('MainMenuScript')

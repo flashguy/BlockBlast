@@ -1,4 +1,4 @@
-import { _decorator, Component, Enum, Node } from 'cc';
+import { _decorator, Enum } from 'cc';
 const { ccclass, property } = _decorator;
 
 export enum BonusType

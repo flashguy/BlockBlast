@@ -1,4 +1,4 @@
-import { _decorator, Component, log, Node, Tween, tween, UITransform, Vec3 } from 'cc';
+import { _decorator, Node, Tween, tween, UITransform, Vec3 } from 'cc';
 import { HiddenPanel } from './HiddenPanel';
 const { ccclass, property } = _decorator;
 

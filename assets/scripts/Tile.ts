@@ -1,4 +1,4 @@
-import { _decorator, Label, Node, Tween, UITransform, Vec2, Vec3} from 'cc';
+import { _decorator, Label, Node, Tween, Vec2, Vec3} from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('Tile')

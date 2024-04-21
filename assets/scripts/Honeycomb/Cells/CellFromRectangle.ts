@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Vec2 } from 'cc';
+import { _decorator, Vec2 } from 'cc';
 import { Cell } from './Cell';
 import { CellType, Position } from '../Geometry/Enumerations';
 import { Edge } from '../Geometry/Edge';

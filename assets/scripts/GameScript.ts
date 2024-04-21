@@ -1,4 +1,4 @@
-import { _decorator, Component, director, error, EventMouse, input, Input, log, math, Node, Prefab, ProgressBar, SceneAsset, tween, Vec2, Vec3, warn } from 'cc';
+import { _decorator, Component, director, EventMouse, input, Input, log, math, Node, Prefab, ProgressBar, SceneAsset, tween, Vec2, Vec3 } from 'cc';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
 import { ProgressPanelScript } from './ui/ProgressPanelScript';
@@ -183,7 +183,7 @@ export class GameScript extends Component
     {
         if (state != this._currentState)
         {
-            log("New State:", GameStateToString.toString(state));
+            // log("New State:", GameStateToString.toString(state));
             this._currentState = state;
             this.onStateChanged();
         }
@@ -446,24 +446,43 @@ export class GameScript extends Component
 
             for (let i:number = 0; i < this._fieldLogic.selectedTiles.length; i++)
             {
-                let type:number = this._fieldLogic.selectedTiles[i].type;
+                let currentTile:Tile = this._fieldLogic.selectedTiles[i];
 
-                if (this._goalsBlock.has(type))
+                if (this._goalsBlock.has(currentTile.type))
                 {
-                    let blockCount:number = this._goalsBlock.get(type);
+                    let blockCount:number = this._goalsBlock.get(currentTile.type);
 
                     if (blockCount > 0)
                     {
-                        this._goalsBlock.set(type, blockCount - 1);
+                        this._goalsBlock.set(currentTile.type, blockCount - 1);
                         this._currentLevelBlocksProgress--;
                     }
                 }
 
-                this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(this._fieldLogic.selectedTiles[i]), 1);
-                this._fieldPanelScript.remove(this._fieldLogic.selectedTiles[i].node);
-            }
+                this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(currentTile), 1);
 
-            this.setState(GameState.CHECK_END_GAME);
+                this._startedAnimations++;
+                let tileCenterPos:Vec2 = this._fieldLogic.grid.gridToScreen(currentTile.pos);
+                tileCenterPos.add(this._fieldLogic.cell.center);
+
+                let burnTween = tween;
+                burnTween(currentTile.node)
+                .parallel(
+                    burnTween().to(0.2, {scale: new Vec3(0, 0, 1)}, { easing: 'backIn' }),
+                    burnTween().to(0.2, {position: new Vec3(tileCenterPos.x, tileCenterPos.y, 0)}, { easing: 'backIn' })
+                )
+                .call(() => {
+                    this._startedAnimations--;
+
+                    this._fieldPanelScript.remove(currentTile.node);
+
+                    if (this._startedAnimations == 0)
+                    {
+                        this.setState(GameState.CHECK_END_GAME);
+                    }
+                })
+                .start();
+            }
         }
         else
         {
@@ -702,14 +721,13 @@ export class GameScript extends Component
             && this._currentState != GameState.WAIT_SWAP_CLICK)
             return;
 
-        log("=========== onMouseDown ===========");
         let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
         let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
         let inGrid:[Position, Vec2] = this._fieldLogic.grid.screenToGrid(screenPoint2D);
 
         if (inGrid[0] == Position.IN && this._fieldLogic.shapeRectangle.isInShape(inGrid[1]))
         {
-            log("==== >>> In Griid <<< ====");
+            // log("==== >>> In Griid <<< ====");
             
             if (event.getButton() == 0)
             {
@@ -723,31 +741,19 @@ export class GameScript extends Component
         }
         else
         {
-            log("==== >>> Out Of Griid <<< ====");
+            // log("==== >>> Out Of Griid <<< ====");
         }
         
-        // тестовый if
+        // INFO: средняя кнопка мыши тестовое перемешивание
         if (event.getButton() == 1)
-        {
-            
-        }
-
-        // тестовый if
-        if (event.getButton() == 2)
-        {
-            this.setState(GameState.CREATE_LEVEL);
-        }
-
-        // тестовый if
-        if (event.getButton() == 3)
         {
             this.shuffle();
         }
-        
-        // тестовый if
-        if (event.getButton() == 4)
+
+        // INFO: правая кнопка мыши тестовое пересоздание уровня без сброса прогресса
+        if (event.getButton() == 2)
         {
-            this.checkNeedShuffle();
+            this.setState(GameState.CREATE_LEVEL);
         }
     }
 

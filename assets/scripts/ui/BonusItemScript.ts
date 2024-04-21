@@ -1,5 +1,4 @@
-import { _decorator, Component, Label, log, Node, Sprite } from 'cc';
-import { BonusType } from '../GameEnumerations';
+import { _decorator, Component, Label, Node, Sprite } from 'cc';
 import { BonusItem } from '../BonusItem';
 const { ccclass, property } = _decorator;
 

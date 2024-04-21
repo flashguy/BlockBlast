@@ -1,4 +1,4 @@
-import { _decorator, Component, log, Node, Prefab } from 'cc';
+import { _decorator, Prefab } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('BlocksPrefabs')

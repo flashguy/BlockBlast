@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
+import { _decorator, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { HiddenPanel } from './HiddenPanel';
 import { BonusItemScript } from './BonusItemScript';
 import { BonusItem } from '../BonusItem';

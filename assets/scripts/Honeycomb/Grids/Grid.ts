@@ -1,6 +1,6 @@
-import { _decorator, Component, math, Node, Vec2 } from 'cc';
+import { _decorator, Vec2 } from 'cc';
 import { Cell } from '../Cells/Cell';
-import { CellType, Position, PositionToString } from '../Geometry/Enumerations';
+import { CellType, Position } from '../Geometry/Enumerations';
 import { Edge } from '../Geometry/Edge';
 const { ccclass, property } = _decorator;
 

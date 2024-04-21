@@ -1,4 +1,4 @@
-import { _decorator, Component, Graphics, Node, tween, UITransform, Vec2, Vec3 } from 'cc';
+import { _decorator, Node, UITransform, Vec2 } from 'cc';
 import { HiddenPanel } from './HiddenPanel';
 const { ccclass, property } = _decorator;
 
@@ -13,18 +13,6 @@ export class FieldPanelScript extends HiddenPanel
 
     @property
     private sizeScale:number = 100;
-
-    start()
-    {
-        /*const g = this.content.getComponent(Graphics);
-        g.lineWidth = 5;
-        g.moveTo(0, 1000)
-        g.lineTo(0, -1000);
-        g.moveTo(-1000, 0);
-        g.lineTo(1000, 0);
-        g.close();
-        g.stroke();*/
-    }
 
     public clear():void
     {

@@ -1,4 +1,4 @@
-import { _decorator, Color, Component, instantiate, Label, Node, Prefab, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, instantiate, Label, Node, UITransform, Vec3 } from 'cc';
 import { Goal } from '../Goal';
 import { BlocksPrefabs } from '../BlocksPrefabs';
 const { ccclass, property } = _decorator;

@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, log, Node, Prefab, randomRangeInt, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, instantiate, Node, randomRangeInt, Vec2, Vec3 } from 'cc';
 import { Cell } from './Honeycomb/Cells/Cell';
 import { Grid } from './Honeycomb/Grids/Grid';
 import { Shape } from './Honeycomb/Shapes/Shape';

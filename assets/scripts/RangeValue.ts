@@ -1,4 +1,4 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('RangeValue')

@@ -1,4 +1,4 @@
-import { _decorator, Button, EventHandler, SpriteFrame, Vec3 } from 'cc';
+import { _decorator, EventHandler, SpriteFrame, Vec3 } from 'cc';
 import { BonusType } from './GameEnumerations';
 const { ccclass, property } = _decorator;
 

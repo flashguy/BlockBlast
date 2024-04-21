@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Vec2 } from 'cc';
+import { _decorator, Vec2 } from 'cc';
 import { Grid } from './Grid';
 import { Cell } from '../Cells/Cell';
 import { Position } from '../Geometry/Enumerations';
