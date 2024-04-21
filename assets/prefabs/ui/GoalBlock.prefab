@@ -356,28 +356,6 @@
     "__prefab": {
       "__id__": 15
     },
-    "blokPrefabs": [
-      {
-        "__uuid__": "508451fe-dccc-4fd0-8bbd-af71b3e27ecd",
-        "__expectedType__": "cc.Prefab"
-      },
-      {
-        "__uuid__": "659cf622-2a11-4592-a315-1bb8d13b7125",
-        "__expectedType__": "cc.Prefab"
-      },
-      {
-        "__uuid__": "138fb66a-ef6d-4945-aaf6-5452f38c141c",
-        "__expectedType__": "cc.Prefab"
-      },
-      {
-        "__uuid__": "062de7e3-60c4-449b-a3cd-0197d596ced5",
-        "__expectedType__": "cc.Prefab"
-      },
-      {
-        "__uuid__": "aa49348e-bc63-4c67-8f48-710302b2cab9",
-        "__expectedType__": "cc.Prefab"
-      }
-    ],
     "block": {
       "__id__": 2
     },

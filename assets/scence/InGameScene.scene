@@ -349,7 +349,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -40,
       "z": 0
     },
     "_lrot": {
@@ -629,7 +629,7 @@
     "showPosition": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -40,
       "z": 0
     },
     "hidePosition": {
@@ -640,8 +640,8 @@
     },
     "showScale": {
       "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
+      "x": 0.8,
+      "y": 0.8,
       "z": 1
     },
     "hideScale": {
@@ -7057,8 +7057,8 @@
     },
     "fieldSize": {
       "__type__": "cc.Vec2",
-      "x": 7,
-      "y": 8
+      "x": 9,
+      "y": 10
     },
     "cellSize": {
       "__type__": "cc.Vec2",

@@ -1,4 +1,4 @@
-import { _decorator, Node, UITransform, Vec2 } from 'cc';
+import { _decorator, Node, UITransform, Vec2, Vec3 } from 'cc';
 import { HiddenPanel } from './HiddenPanel';
 const { ccclass, property } = _decorator;
 
@@ -13,6 +13,8 @@ export class FieldPanelScript extends HiddenPanel
 
     @property
     private sizeScale:number = 100;
+
+    private _uiTransform:UITransform;
 
     public clear():void
     {
@@ -33,7 +35,12 @@ export class FieldPanelScript extends HiddenPanel
     {
         this.node.active = true;
 
-        const uiTransform = this.fieldBG.getComponent(UITransform);
-        uiTransform.setContentSize((this.sizeScale * (size.x * cellSize.x)) / 100, (this.sizeScale * (size.y * cellSize.x)) / 100);
+        this._uiTransform = this.fieldBG.getComponent(UITransform);
+        this._uiTransform.setContentSize((this.sizeScale * (size.x * cellSize.x)) / 100, (this.sizeScale * (size.y * cellSize.x)) / 100);
+    }
+
+    public getContentXY(v:Vec3):Vec3
+    {
+        return this._uiTransform.convertToNodeSpaceAR(v);
     }
 }

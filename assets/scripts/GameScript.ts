@@ -720,8 +720,8 @@ export class GameScript extends Component
             && this._currentState != GameState.WAIT_BOMB_CLICK
             && this._currentState != GameState.WAIT_SWAP_CLICK)
             return;
-
-        let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
+        
+        let screenPoint3D:Vec3 = this._fieldPanelScript.getContentXY(new Vec3(event.getLocationX(), event.getLocationY(), 0));
         let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
         let inGrid:[Position, Vec2] = this._fieldLogic.grid.screenToGrid(screenPoint2D);
 
@@ -762,7 +762,7 @@ export class GameScript extends Component
         if (this._currentState != GameState.WAIT_BOMB_CLICK)
             return;
         
-        let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
+        let screenPoint3D:Vec3 = this._fieldPanelScript.getContentXY(new Vec3(event.getLocationX(), event.getLocationY(), 0));
         let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
         let inGrid:[Position, Vec2] = this._fieldLogic.grid.screenToGrid(screenPoint2D);
 
