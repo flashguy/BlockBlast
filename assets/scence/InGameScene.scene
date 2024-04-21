@@ -6185,21 +6185,21 @@
     "min": 3,
     "max": 4,
     "trueIfMoreMax": false,
-    "reward": 1
+    "reward": 5
   },
   {
     "__type__": "RangeValue",
     "min": 5,
     "max": 8,
     "trueIfMoreMax": false,
-    "reward": 2
+    "reward": 8
   },
   {
     "__type__": "RangeValue",
     "min": 9,
     "max": 12,
     "trueIfMoreMax": true,
-    "reward": 3
+    "reward": 10
   },
   {
     "__type__": "RangeValue",

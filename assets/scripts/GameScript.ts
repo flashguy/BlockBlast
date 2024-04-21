@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventMouse, input, Input, log, Node, Prefab, SceneAsset, tween, Vec2, Vec3, warn } from 'cc';
+import { _decorator, Component, director, error, EventMouse, input, Input, log, Node, Prefab, SceneAsset, tween, Vec2, Vec3, warn } from 'cc';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
 import { ProgressPanelScript } from './ui/ProgressPanelScript';
@@ -145,14 +145,7 @@ export class GameScript extends Component
     private _goalsBlock:Map<number, number> = new Map<number, number>();
     private _currentShuffleTry:number = 0;
     private _startedAnimations:number = 0;
-
-    
-    private _swapPos:Vec2;
-
-    onEnable():void
-    {
-        
-    }
+    private _swapTile:Tile = null;
 
     start()
     {
@@ -175,26 +168,6 @@ export class GameScript extends Component
         input.on(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
 
         this.setState(GameState.SHOW_LEVEL_WINDOW);
-    }
-
-    update(deltaTime:number)
-    {
-        
-    }
-
-    lateUpdate(dt:number):void
-    {
-        
-    }
-
-    onDisable():void
-    {
-        
-    }
-
-    onDestroy():void
-    {
-        
     }
 
     private setState(state:GameState):void
@@ -235,6 +208,13 @@ export class GameScript extends Component
         
     }
 
+    private gotoMainMenu():void
+    {
+        director.preloadScene("MainMenuScene", this.onPorogressLoadScene, (error: null | Error, sceneAsset?: SceneAsset) => {
+            director.loadScene("MainMenuScene");
+        });
+    }
+
     private showLevelWindow():void
     {
         this._currentLevel++;
@@ -255,9 +235,7 @@ export class GameScript extends Component
                 clearInterval(interval);
                 
                 this._labelPanelScript.hideWithScale(() => {
-                    director.preloadScene("MainMenuScene", this.onPorogressLoadScene, (error: null | Error, sceneAsset?: SceneAsset) => {
-                        director.loadScene("MainMenuScene");
-                    });
+                    this.gotoMainMenu();
                 });
             }, 1000);
 
@@ -273,7 +251,9 @@ export class GameScript extends Component
 
     private showScoreWindow():void
     {
-        this._scorePanelScript.init(this._currentLevel + 1, this._rewardScore, () => { this.setState(GameState.SHOW_LEVEL_WINDOW); });
+        this._scorePanelScript.init(this._currentLevel + 1, this._rewardScore,
+            () => { this.setState(GameState.SHOW_LEVEL_WINDOW); },
+            () => { this.gotoMainMenu(); });
         this._scorePanelScript.showWithScale();
     }
 
@@ -345,7 +325,83 @@ export class GameScript extends Component
 
     private swapClickAction(pos:Vec2):void
     {
+        let clickedTile:Tile = this._fieldLogic.getTyleByGridPosition(pos);
 
+        if (clickedTile != null)
+        {
+            if (this._swapTile == null) // кликнули на первый раз
+            {
+                this._swapTile = clickedTile;
+                this._swapTile.setSelected(true);
+            }
+            else if (this._swapTile.pos.equals(clickedTile.pos)) // кликнули на уже выбранный тайл
+            {
+                this._swapTile.setSelected(false);
+                this._swapTile = null;
+            }
+            else
+            {
+                let leftNeighbor:Vec2 = this._fieldLogic.grid.getCellNeighbor(this._swapTile.pos, Position.L);
+                let topNeighbor:Vec2 = this._fieldLogic.grid.getCellNeighbor(this._swapTile.pos, Position.T);
+                let rightNeighbor:Vec2 = this._fieldLogic.grid.getCellNeighbor(this._swapTile.pos, Position.R);
+                let bottomNeighbor:Vec2 = this._fieldLogic.grid.getCellNeighbor(this._swapTile.pos, Position.B);
+
+                if (clickedTile.pos.equals(leftNeighbor)
+                    || clickedTile.pos.equals(topNeighbor)
+                    || clickedTile.pos.equals(rightNeighbor)
+                    || clickedTile.pos.equals(bottomNeighbor))
+                {
+                    let tempPos:Vec2 = this._swapTile.pos.clone();
+
+                    this._swapTile.setSelected(false);
+                    this._swapTile.pos = clickedTile.pos.clone();
+                    this._swapTile.updateLabel();
+                    clickedTile.pos = tempPos;
+                    clickedTile.updateLabel();
+
+                    this.sortTilesAfterSwap();
+                    
+                    this.moveTileToNewPos(this._swapTile, () => { this.cancelSwapClickAction(); });
+                    this.moveTileToNewPos(clickedTile, () => { this.cancelSwapClickAction(); });
+                }
+            }
+        }
+    }
+
+    private sortTilesAfterSwap():void
+    {
+        this._fieldLogic.sortTiles();
+
+        for (let i:number = 0; i < this._fieldLogic.tiles.length; i++)
+        {
+            let currentTile:Tile = this._fieldLogic.tiles[i];
+            currentTile.node.setSiblingIndex(i);
+        }
+    }
+
+    private moveTileToNewPos(tile:Tile, callback?:Function):void
+    {
+        this._startedAnimations++;
+        let inScreen:Vec2 = this._fieldLogic.grid.gridToScreen(tile.pos);
+
+        tween(tile.node)
+        .to(0.8, {position: new Vec3(inScreen.x, inScreen.y, 0)}, { easing: 'backInOut' })
+        .call(() => {
+            this._startedAnimations--;
+
+            if (this._startedAnimations == 0)
+            {
+                if (callback)
+                    callback();
+            }
+        })
+        .start();
+    }
+
+    private cancelSwapClickAction():void
+    {
+        this._swapTile = null;
+        this.setState(GameState.WAIT_SIMPLE_CLICK);
     }
 
     private removeSelectedTiles():void
@@ -609,7 +665,7 @@ export class GameScript extends Component
             }
             case BonusType.SWAP:
             {
-                // this.setState(GameState.WAIT_SWAP_CLICK);
+                this.setState(GameState.WAIT_SWAP_CLICK);
                 break;
             }
             default:

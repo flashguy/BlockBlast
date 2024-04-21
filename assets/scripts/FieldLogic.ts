@@ -114,6 +114,17 @@ export class FieldLogic extends Component
         return null;
     }
 
+    public getTyleIndexByGridPosition(pos:Vec2):number
+    {
+        for (let i:number = 0; i < this.tiles.length; i++)
+        {
+            if (this.tiles[i].pos.equals(pos))
+                return i;
+        }
+
+        return -1;
+    }
+
     private isTyleChecked(pos:Vec2):boolean
     {
         for (let i:number = 0; i < this._checkedPositions.length; i++)
@@ -165,8 +176,7 @@ export class FieldLogic extends Component
 
         if (this._searchStackDepth == 0)
         {
-            // this.setState(GameState.REMOVE_TILES);
-            log("$$$ checkNeighbors");
+            
         }
     }
 
@@ -279,7 +289,7 @@ export class FieldLogic extends Component
         return isShuffleNeed;
     }
 
-    private sortTiles():void
+    public sortTiles():void
     {
         this.tiles.sort((a, b) =>
         {
