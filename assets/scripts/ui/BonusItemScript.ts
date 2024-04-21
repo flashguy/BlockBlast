@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, Sprite, SpriteComponent } from 'cc';
+import { _decorator, Component, Label, log, Node, Sprite } from 'cc';
 import { BonusType } from '../GameEnumerations';
 import { BonusItem } from '../BonusItem';
 const { ccclass, property } = _decorator;
@@ -16,6 +16,7 @@ export class BonusItemScript extends Component
     private label:Label;
 
     private _item:BonusItem;
+    private _available:boolean = false;
 
     public init(item:BonusItem):void
     {
@@ -30,6 +31,13 @@ export class BonusItemScript extends Component
 
     public click():void
     {
-        this._item.clickEvents[0].emit([this._item]);
+        if (this._available)
+            this._item.clickEvents[0].emit([this._item]);
+    }
+
+    public updateAvailable(money:number):void
+    {
+        this._available = money >= this._item.price;
+        this.bg.getComponent(Sprite).grayscale = !this._available;
     }
 }

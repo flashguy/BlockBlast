@@ -10,9 +10,12 @@ export class BonusPanelScript extends HiddenPanel
     @property(Prefab)
     private bonusItem:Prefab;
 
+    private bonuses:Array<BonusItemScript>;
+
     public init(bonuses:BonusItem[]):void
     {
         this.node.removeAllChildren();
+        this.bonuses = new Array<BonusItemScript>;
 
         for (let i = 0; i < bonuses.length; i++)
         {
@@ -22,7 +25,17 @@ export class BonusPanelScript extends HiddenPanel
             let bonusScript:BonusItemScript = bonus.getComponent(BonusItemScript) as BonusItemScript;
             bonusScript.init(bonuses[i]);
 
+            this.bonuses.push(bonusScript);
             this.node.addChild(bonus);
+        }
+    }
+
+    public updateBonuses(money:number):void
+    {
+        for (let i = 0; i < this.bonuses.length; i++)
+        {
+            const bonus = this.bonuses[i];
+            bonus.updateAvailable(money);
         }
     }
 }

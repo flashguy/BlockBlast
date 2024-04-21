@@ -285,6 +285,7 @@ export class GameScript extends Component
         this._levelScorePanelScript.setValue(0);
         this._moneyPanelScript.setValue(0);
         this._bonusPanelScript.init(this.bonuses);
+        this._bonusPanelScript.updateBonuses(this._rewardMoney);
 
         this._progressPanelScript.showWithMove();
         this._pauseButtonPanelScript.showWithMove();
@@ -450,6 +451,7 @@ export class GameScript extends Component
             {
                 this._rewardMoney += this.revardsMoney[i].reward;
                 this._moneyPanelScript.setValue(this._rewardMoney);
+                this._bonusPanelScript.updateBonuses(this._rewardMoney);
             }
         }
 
@@ -582,19 +584,7 @@ export class GameScript extends Component
 
         let interval:number = setInterval(() => {
             clearInterval(interval);
-            
-            this._labelPanelScript.hideWithScale(() => {
-                this._progressPanelScript.hideWithMove();
-                this._pauseButtonPanelScript.hideWithMove();
-                this._goalsPanelScript.hideWithMove();
-                this._movesPanelScript.hideWithMove();
-                this._fieldPanelScript.hideWithScale();
-                this._levelScorePanelScript.hideWithMove();
-                this._bonusPanelScript.hideWithMove();
-                this._moneyPanelScript.hideWithMove(() => {
-                    this.setState(GameState.SHOW_SCORE_WINDOW);
-                });
-            });
+            this.hideAllPanelsAndShowScoreWindow();
         }, 1000);
     }
 
@@ -605,19 +595,7 @@ export class GameScript extends Component
 
         let interval:number = setInterval(() => {
             clearInterval(interval);
-            
-            this._labelPanelScript.hideWithScale(() => {
-                this._progressPanelScript.hideWithMove();
-                this._pauseButtonPanelScript.hideWithMove();
-                this._goalsPanelScript.hideWithMove();
-                this._movesPanelScript.hideWithMove();
-                this._fieldPanelScript.hideWithScale();
-                this._levelScorePanelScript.hideWithMove();
-                this._bonusPanelScript.hideWithMove();
-                this._moneyPanelScript.hideWithMove(() => {
-                    this.setState(GameState.SHOW_SCORE_WINDOW);
-                });
-            });
+            this.hideAllPanelsAndShowScoreWindow();
         }, 1000);
     }
 
@@ -636,22 +614,26 @@ export class GameScript extends Component
 
                 let interval:number = setInterval(() => {
                     clearInterval(interval);
-                    
-                    this._labelPanelScript.hideWithScale(() => {
-                        this._progressPanelScript.hideWithMove();
-                        this._pauseButtonPanelScript.hideWithMove();
-                        this._goalsPanelScript.hideWithMove();
-                        this._movesPanelScript.hideWithMove();
-                        this._fieldPanelScript.hideWithScale();
-                        this._levelScorePanelScript.hideWithMove();
-                        this._bonusPanelScript.hideWithMove();
-                        this._moneyPanelScript.hideWithMove(() => {
-                            this.setState(GameState.SHOW_SCORE_WINDOW);
-                        });
-                    });
+                    this.hideAllPanelsAndShowScoreWindow();
                 }, 1000);
             });
         }, 1000);
+    }
+
+    private hideAllPanelsAndShowScoreWindow():void
+    {
+        this._labelPanelScript.hideWithScale(() => {
+            this._progressPanelScript.hideWithMove();
+            this._pauseButtonPanelScript.hideWithMove();
+            this._goalsPanelScript.hideWithMove();
+            this._movesPanelScript.hideWithMove();
+            this._fieldPanelScript.hideWithScale();
+            this._levelScorePanelScript.hideWithMove();
+            this._bonusPanelScript.hideWithMove();
+            this._moneyPanelScript.hideWithMove(() => {
+                this.setState(GameState.SHOW_SCORE_WINDOW);
+            });
+        });
     }
 
     private bonusButtonPressed(bonusItem:BonusItem):void
@@ -660,11 +642,19 @@ export class GameScript extends Component
         {
             case BonusType.BOMB:
             {
+                this._rewardMoney -= bonusItem.price;
+                this._moneyPanelScript.setValue(this._rewardMoney);
+                this._bonusPanelScript.updateBonuses(this._rewardMoney);
+
                 this.setState(GameState.WAIT_BOMB_CLICK);
                 break;
             }
             case BonusType.SWAP:
             {
+                this._rewardMoney -= bonusItem.price;
+                this._moneyPanelScript.setValue(this._rewardMoney);
+                this._bonusPanelScript.updateBonuses(this._rewardMoney);
+
                 this.setState(GameState.WAIT_SWAP_CLICK);
                 break;
             }
@@ -760,84 +750,4 @@ export class GameScript extends Component
             currentTile.setSelected(select);
         }
     }
-
-    /*
-
-    private checkSwap(pos:Vec2)
-    {
-        if (this._swapPos == null)
-        {
-            this._swapPos = pos.clone();
-        }
-        else
-        {
-            let leftNeighbor:Vec2 = this._grid.getCellNeighbor(this._swapPos, Position.L);
-            let topNeighbor:Vec2 = this._grid.getCellNeighbor(this._swapPos, Position.T);
-            let rightNeighbor:Vec2 = this._grid.getCellNeighbor(this._swapPos, Position.R);
-            let bottomNeighbor:Vec2 = this._grid.getCellNeighbor(this._swapPos, Position.B);
-
-            if (pos.equals(leftNeighbor) || pos.equals(topNeighbor) || pos.equals(rightNeighbor) || pos.equals(bottomNeighbor))
-            {
-                log("ЭТО СОСЕД");
-                let leftTile:Tile = this.getTyleByGridPosition(this._swapPos);
-                let rightTile:Tile = this.getTyleByGridPosition(pos);
-                let tempPos:Vec2 = leftTile.pos.clone();
-                
-                leftTile.pos = rightTile.pos.clone();
-                leftTile.updateLabel();
-
-                rightTile.pos = tempPos.clone();
-                rightTile.updateLabel();
-
-                this.sortTiles();
-
-                for (let i:number = 0; i < this._tiles.length; i++)
-                {
-                    let currentTile:Tile = this._tiles[i];
-                    currentTile.node.setSiblingIndex(i);
-                }
-
-                this._startedAnimations = 2;
-
-                let inScreen1:Vec2 = this._grid.gridToScreen(leftTile.pos);
-                tween(leftTile.node)
-                .to(0.4, {position: new Vec3(inScreen1.x, inScreen1.y, 0)}, { easing: 'linear' })
-                .call(() => {
-                    this.checkAnimationFinish();
-                })
-                .start();
-
-                let inScreen2:Vec2 = this._grid.gridToScreen(rightTile.pos);
-                tween(rightTile.node)
-                .to(0.4, {position: new Vec3(inScreen2.x, inScreen2.y, 0)}, { easing: 'linear' })
-                .call(() => {
-                    this.checkAnimationFinish();
-                })
-                .start();
-            }
-            else
-            {
-                log("ЭТО НЕ СОСЕД");
-            }
-        }
-    }
-
-    private checkAnimationFinish():void
-    {
-        this._startedAnimations--;
-
-        if (this._startedAnimations == 0)
-        {
-            switch (this._currentState)
-            {
-                case GameState.WAIT_SWAP:
-                {
-                    log("OK OK OK");
-                    this._swapPos = null;
-                    this.setState(GameState.WAIT_SIMPLE_CLICK);
-                    break;
-                }
-            }
-        }
-    }*/
 }
