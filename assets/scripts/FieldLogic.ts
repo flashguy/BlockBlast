@@ -29,6 +29,9 @@ export class FieldLogic extends Component
     @property
     public maxShuffleTry:number = 3;
 
+    @property
+    private bombDistance:number = 2;
+
     private _fieldPanelScript:FieldPanelScript;
 
     private _cell:Cell;
@@ -74,7 +77,6 @@ export class FieldLogic extends Component
         // let tileType:number = randomRangeInt(0, 3);
         let blockPrefab:Node = instantiate(BlocksPrefabs.getBlockPrefabByType(tileType));
         blockPrefab.active = true;
-        blockPrefab.setScale(new Vec3(0.5, 0.5, 1));
         blockPrefab.setPosition(new Vec3(inScreen.x, inScreen.y, 0));
 
         this._fieldPanelScript.add(blockPrefab);
@@ -83,7 +85,8 @@ export class FieldLogic extends Component
         tile.pos = cellPoint;
         tile.node = blockPrefab;
         tile.type = tileType;
-        tile.updateLabel();
+        tile.updateLabel(); // INFO: включает отладочную информацию
+        tile.init();
         
         this.tiles.push(tile);
 
@@ -321,6 +324,19 @@ export class FieldLogic extends Component
         }
 
         this.sortTiles();
+    }
+
+    public selectCircle(pos:Vec2):void
+    {
+        let shapeCircle:Shape = ShapeBuilder.getMidpointCircle(pos, this.bombDistance);
+        
+        shapeCircle.get().forEach((cellPoint) =>
+        {
+            if (this._shapeRectangle.isInShape(cellPoint))
+            {
+                this.selectedTiles.push(this.getTyleByGridPosition(cellPoint));
+            }
+        });
     }
 }
 

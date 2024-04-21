@@ -11,19 +11,25 @@ export class ScorePanelScript extends HiddenPanel
     @property(Label)
     private labelScore:Label;
 
-    public init(level:number, score:number):void
+    private _nextCallback:Function = null;
+    private _menuCallback:Function = null;
+
+    public init(level:number, score:number, nextCallback?:Function, menuCallback?:Function):void
     {
+        this._nextCallback = nextCallback;
+        this._menuCallback = menuCallback;
+
         this.labelLevel.string = level.toString();
         this.labelScore.string = score.toString();
     }
 
     public onNextClick():void
     {
-        this.hideWithScale();
+        this.hideWithScale(this._nextCallback);
     }
 
     public onMenuClick():void
     {
-        this.hideWithScale();
+        this.hideWithScale(this._menuCallback);
     }
 }

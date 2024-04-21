@@ -4,16 +4,16 @@ const { ccclass, property } = _decorator;
 @ccclass('HiddenPanel')
 export class HiddenPanel extends Component
 {
-    @property(Vec3)
+    @property({ group: { name: 'position', id: '0', displayOrder: 1 }, type: Vec3, tooltip: "Позиция в которую будет перемешена панель" })
     private showPosition:Vec3 = new Vec3(0, 0, 0);
 
-    @property(Vec3)
+    @property({ group: { name: 'position', id: '0', displayOrder: 1 }, type: Vec3 })
     private hidePosition:Vec3 = new Vec3(0, 0, 0);
 
-    @property(Vec3)
+    @property({ group: { name: 'scale', id: '0', displayOrder: 2 }, type: Vec3 })
     private showScale:Vec3 = new Vec3(1, 1, 1);
 
-    @property(Vec3)
+    @property({ group: { name: 'scale', id: '0', displayOrder: 2 }, type: Vec3 })
     private hideScale:Vec3 = new Vec3(0, 0, 1);
 
     // linear | bounceOut | backOut 

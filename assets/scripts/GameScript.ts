@@ -1,4 +1,4 @@
-import { _decorator, Component, EventMouse, input, Input, log, Node, Prefab, tween, Vec2, Vec3, warn } from 'cc';
+import { _decorator, Component, director, EventMouse, input, Input, log, Node, Prefab, SceneAsset, tween, Vec2, Vec3, warn } from 'cc';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
 import { ProgressPanelScript } from './ui/ProgressPanelScript';
@@ -17,14 +17,19 @@ import { RangeValue } from './RangeValue';
 import { RangeVerifier } from './RangeVerifier';
 import { BlocksPrefabs } from './BlocksPrefabs';
 import { LabelPanelScript } from './ui/LabelPanelScript';
+import { BonusItem } from './BonusItem';
+import { BonusType } from './GameEnumerations';
 const { ccclass, property } = _decorator;
 
 enum GameState
 {
     SHOW_LEVEL_WINDOW,
+    SHOW_SCORE_WINDOW,
     START_LEVEL,
     CREATE_LEVEL,
     WAIT_SIMPLE_CLICK,
+    WAIT_BOMB_CLICK,
+    WAIT_SWAP_CLICK,
     SEARCH_TILES,
     REMOVE_SELECTED_TILES,
     CHECK_END_GAME,
@@ -32,6 +37,7 @@ enum GameState
     CHECK_NEED_SHUFFLE,
     WAIT_SWAP,
     FAIL_GAME,
+    WIN_LEVEL,
     NO_MOVES
 }
 
@@ -42,9 +48,12 @@ export class GameStateToString
         switch (key)
         {
             case GameState.SHOW_LEVEL_WINDOW:       return "SHOW_LEVEL_WINDOW";
+            case GameState.SHOW_SCORE_WINDOW:       return "SHOW_SCORE_WINDOW";
             case GameState.START_LEVEL:             return "START_LEVEL";
             case GameState.CREATE_LEVEL:            return "LOAD_LEVEL";
             case GameState.WAIT_SIMPLE_CLICK:       return "WAIT_SIMPLE_CLICK";
+            case GameState.WAIT_BOMB_CLICK:         return "WAIT_BOMB_CLICK";
+            case GameState.WAIT_SWAP_CLICK:         return "WAIT_SWAP_CLICK";
             case GameState.SEARCH_TILES:            return "SEARCH_TILES";
             case GameState.REMOVE_SELECTED_TILES:   return "REMOVE_SELECTED_TILES";
             case GameState.CHECK_END_GAME:          return "CHECK_END_GAME";
@@ -52,6 +61,7 @@ export class GameStateToString
             case GameState.CHECK_NEED_SHUFFLE:      return "CHECK_NEED_SHUFFLE";
             case GameState.WAIT_SWAP:               return "WAIT_SWAP";
             case GameState.FAIL_GAME:               return "FAIL_GAME";
+            case GameState.WIN_LEVEL:               return "WIN_LEVEL";
             case GameState.NO_MOVES:                return "NO_MOVES";
             default: return "В перечислении GameState нет ключа с таким именем '" + key + "'";
         }
@@ -106,6 +116,9 @@ export class GameScript extends Component
     @property([RangeValue])
     private revardsScore:RangeValue[] = [];
 
+    @property([BonusItem])
+    private bonuses:BonusItem[] = [];
+
     private _fieldLogic:FieldLogic;
     private _fieldPanelScript:FieldPanelScript;
     private _progressPanelScript:ProgressPanelScript;
@@ -134,10 +147,6 @@ export class GameScript extends Component
     private _startedAnimations:number = 0;
 
     
-    
-    
-    
-    private _bombDistance:number = 2;
     private _swapPos:Vec2;
 
     onEnable():void
@@ -163,6 +172,7 @@ export class GameScript extends Component
         this._bonusPanelScript = this.bonusPanel.getComponent(BonusPanelScript) as BonusPanelScript;
 
         input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+        input.on(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
 
         this.setState(GameState.SHOW_LEVEL_WINDOW);
     }
@@ -202,17 +212,21 @@ export class GameScript extends Component
         switch (this._currentState)
         {
             case GameState.SHOW_LEVEL_WINDOW:       this.showLevelWindow();     break;
+            case GameState.SHOW_SCORE_WINDOW:       this.showScoreWindow();     break;
             case GameState.START_LEVEL:             this.startLevel();          break;
             case GameState.CREATE_LEVEL:            this.createLevel();         break;
-            case GameState.WAIT_SIMPLE_CLICK:       break;
-            case GameState.SEARCH_TILES:            break;
+            // case GameState.WAIT_SIMPLE_CLICK:       break;
+            // case GameState.WAIT_BOMB_CLICK:         break;
+            // case GameState.WAIT_SWAP_CLICK:         break;
+            // case GameState.SEARCH_TILES:            break;
             case GameState.REMOVE_SELECTED_TILES:   this.removeSelectedTiles(); break;
             case GameState.CHECK_END_GAME:          this.checkEndGame();        break;
             case GameState.SPAWN_NEW_TILES:         this.spawnNewTiles();       break;
             case GameState.CHECK_NEED_SHUFFLE:      this.checkNeedShuffle();    break;
-            case GameState.WAIT_SWAP:               break;
-            case GameState.FAIL_GAME:               this.failGame();             break;
-            case GameState.NO_MOVES:                this.noMoves();              break;
+            // case GameState.WAIT_SWAP:               break;
+            case GameState.FAIL_GAME:               this.failGame();            break;
+            case GameState.WIN_LEVEL:               this.winLevel();            break;
+            case GameState.NO_MOVES:                this.noMoves();             break;
         }
     }
 
@@ -232,6 +246,35 @@ export class GameScript extends Component
             this._levelPanelScript.init(this._currentLevelData, () => { this.setState(GameState.START_LEVEL); });
             this._levelPanelScript.showWithScale();
         }
+        else
+        {
+            this._labelPanelScript.setLebel("Игра пройдена", 80);
+            this._labelPanelScript.showWithScale();
+
+            let interval:number = setInterval(() => {
+                clearInterval(interval);
+                
+                this._labelPanelScript.hideWithScale(() => {
+                    director.preloadScene("MainMenuScene", this.onPorogressLoadScene, (error: null | Error, sceneAsset?: SceneAsset) => {
+                        director.loadScene("MainMenuScene");
+                    });
+                });
+            }, 1000);
+
+            
+        }
+    }
+
+    private onPorogressLoadScene = (completedCount:number, totalCount:number, iten:any) =>
+    {
+        // this.progressBar.progress = completedCount / totalCount;
+        warn(completedCount / totalCount);
+    }
+
+    private showScoreWindow():void
+    {
+        this._scorePanelScript.init(this._currentLevel + 1, this._rewardScore, () => { this.setState(GameState.SHOW_LEVEL_WINDOW); });
+        this._scorePanelScript.showWithScale();
     }
 
     private startLevel():void
@@ -261,6 +304,7 @@ export class GameScript extends Component
         this._fieldPanelScript.init(this._fieldLogic.getFieldSize, this._fieldLogic.getCellSize);
         this._levelScorePanelScript.setValue(0);
         this._moneyPanelScript.setValue(0);
+        this._bonusPanelScript.init(this.bonuses);
 
         this._progressPanelScript.showWithMove();
         this._pauseButtonPanelScript.showWithMove();
@@ -269,6 +313,7 @@ export class GameScript extends Component
         this._fieldPanelScript.showWithScale();
         this._levelScorePanelScript.showWithMove();
         this._moneyPanelScript.showWithMove();
+        this._bonusPanelScript.showWithMove();
 
         this.setState(GameState.CREATE_LEVEL);
     }
@@ -286,10 +331,21 @@ export class GameScript extends Component
     // Проверка рядом стоящих тайлов после клика
     private simpleClickAction(pos:Vec2):void
     {
-        log("$$$ simpleClickAction 00 >>>>");
+        this._fieldLogic.clearSelectedTiles();
         this._fieldLogic.getSimpleClick(pos);
-        log("$$$ simpleClickAction 01 <<<<");
         this.setState(GameState.REMOVE_SELECTED_TILES);
+    }
+
+    private bombClickAction(pos:Vec2):void
+    {
+        this._fieldLogic.clearSelectedTiles();
+        this._fieldLogic.selectCircle(pos);
+        this.setState(GameState.REMOVE_SELECTED_TILES);
+    }
+
+    private swapClickAction(pos:Vec2):void
+    {
+
     }
 
     private removeSelectedTiles():void
@@ -304,8 +360,13 @@ export class GameScript extends Component
 
                 if (this._goalsBlock.has(type))
                 {
-                    this._currentLevelBlocksProgress--;
-                    this._goalsBlock.set(type, this._goalsBlock.get(type) - 1);
+                    let blockCount:number = this._goalsBlock.get(type);
+
+                    if (blockCount > 0)
+                    {
+                        this._goalsBlock.set(type, blockCount - 1);
+                        this._currentLevelBlocksProgress--;
+                    }
                 }
 
                 this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(this._fieldLogic.selectedTiles[i]), 1);
@@ -355,8 +416,7 @@ export class GameScript extends Component
         else if (this._currentLevelBlocksProgress == 0)
         {
             // INFO: ПОБЕДА
-            this._labelPanelScript.setLebel("Победа", 80);
-            this._labelPanelScript.showWithScale();
+            this.setState(GameState.WIN_LEVEL);
         }
         else
         {
@@ -474,8 +534,32 @@ export class GameScript extends Component
                 this._movesPanelScript.hideWithMove();
                 this._fieldPanelScript.hideWithScale();
                 this._levelScorePanelScript.hideWithMove();
+                this._bonusPanelScript.hideWithMove();
                 this._moneyPanelScript.hideWithMove(() => {
-                    this.setState(GameState.SHOW_LEVEL_WINDOW);
+                    this.setState(GameState.SHOW_SCORE_WINDOW);
+                });
+            });
+        }, 1000);
+    }
+
+    private winLevel():void
+    {
+        this._labelPanelScript.setLebel("Победа", 80);
+        this._labelPanelScript.showWithScale();
+
+        let interval:number = setInterval(() => {
+            clearInterval(interval);
+            
+            this._labelPanelScript.hideWithScale(() => {
+                this._progressPanelScript.hideWithMove();
+                this._pauseButtonPanelScript.hideWithMove();
+                this._goalsPanelScript.hideWithMove();
+                this._movesPanelScript.hideWithMove();
+                this._fieldPanelScript.hideWithScale();
+                this._levelScorePanelScript.hideWithMove();
+                this._bonusPanelScript.hideWithMove();
+                this._moneyPanelScript.hideWithMove(() => {
+                    this.setState(GameState.SHOW_SCORE_WINDOW);
                 });
             });
         }, 1000);
@@ -504,8 +588,9 @@ export class GameScript extends Component
                         this._movesPanelScript.hideWithMove();
                         this._fieldPanelScript.hideWithScale();
                         this._levelScorePanelScript.hideWithMove();
+                        this._bonusPanelScript.hideWithMove();
                         this._moneyPanelScript.hideWithMove(() => {
-                            this.setState(GameState.SHOW_LEVEL_WINDOW);
+                            this.setState(GameState.SHOW_SCORE_WINDOW);
                         });
                     });
                 }, 1000);
@@ -513,12 +598,30 @@ export class GameScript extends Component
         }, 1000);
     }
 
+    private bonusButtonPressed(bonusItem:BonusItem):void
+    {
+        switch (bonusItem.type)
+        {
+            case BonusType.BOMB:
+            {
+                this.setState(GameState.WAIT_BOMB_CLICK);
+                break;
+            }
+            case BonusType.SWAP:
+            {
+                // this.setState(GameState.WAIT_SWAP_CLICK);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
     private onMouseDown(event:EventMouse):void
     {
-        log("this._currentState =", GameStateToString.toString(this._currentState));
-        if (this._currentState == GameState.SHOW_LEVEL_WINDOW
-            || this._currentState == GameState.START_LEVEL
-            || this._currentState == GameState.CREATE_LEVEL)
+        if (this._currentState != GameState.WAIT_SIMPLE_CLICK
+            && this._currentState != GameState.WAIT_BOMB_CLICK
+            && this._currentState != GameState.WAIT_SWAP_CLICK)
             return;
 
         log("=========== onMouseDown ===========");
@@ -534,7 +637,9 @@ export class GameScript extends Component
             {
                 switch (this._currentState)
                 {
-                    case GameState.WAIT_SIMPLE_CLICK: this.simpleClickAction(inGrid[1]); break;
+                    case GameState.WAIT_SIMPLE_CLICK:   this.simpleClickAction(inGrid[1]); break;
+                    case GameState.WAIT_BOMB_CLICK:     this.bombClickAction(inGrid[1]); break;
+                    case GameState.WAIT_SWAP_CLICK:     this.swapClickAction(inGrid[1]); break;
                 }
             }
         }
@@ -542,37 +647,11 @@ export class GameScript extends Component
         {
             log("==== >>> Out Of Griid <<< ====");
         }
-
-        // this._progressPanelScript.setProgress(this._progressPanelScript.getProgress() + 10, true);
-        // this.getBomb(inGrid[1]); // взрыв
-
-        // if (this._currentState == GameState.WAIT_SWAP)
-        // {
-        //     if (inGrid[0] == Position.IN && this._shapeRectangle.isInShape(inGrid[1]))
-        //     {
-        //         this._searchStackDepth = 0;
-        //         this._checkedPositions = new Array<Vec2>();
-
-        //         this._firstSelectedTile = this.getTyleByGridPosition(inGrid[1]);
-        //         this._selectedTiles.push(this._firstSelectedTile);
-
-        //         this.checkSwap(inGrid[1]);
-        //     }
-        // }
-
         
         // тестовый if
         if (event.getButton() == 1)
         {
-            // if (inGrid[0] == Position.IN && this._shapeRectangle.isInShape(inGrid[1]))
-            // {
-            //     console.log(inGrid[1].toString());
-            //     console.log("In Griid", this.getTyleByGridPosition(inGrid[1]));
-            // }
-            // else
-            // {
-            //     console.log("Out Of Griid");
-            // }
+            
         }
 
         // тестовый if
@@ -594,26 +673,39 @@ export class GameScript extends Component
         }
     }
 
-
-
-
-
-
-
-    /*private getBomb(pos:Vec2):void
+    private onMouseMove(event:EventMouse):void
     {
-        let shapeCircle:Shape = ShapeBuilder.getMidpointCircle(pos, this._bombDistance);
+        if (this._currentState != GameState.WAIT_BOMB_CLICK)
+            return;
         
-        shapeCircle.get().forEach((cellPoint) =>
-        {
-            if (this._shapeRectangle.isInShape(cellPoint))
-            {
-                this._selectedTiles.push(this.getTyleByGridPosition(cellPoint));
-            }
-        });
+        let screenPoint3D:Vec3 = new Vec3(event.getLocationX(), event.getLocationY(), 0).subtract(this.node.parent.getPosition());
+        let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
+        let inGrid:[Position, Vec2] = this._fieldLogic.grid.screenToGrid(screenPoint2D);
 
-        this.setState(GameState.REMOVE_SELECTED_TILES);
+        if (inGrid[0] == Position.IN && this._fieldLogic.shapeRectangle.isInShape(inGrid[1]))
+        {
+            this.selectTiles(false);
+            this._fieldLogic.clearSelectedTiles();
+            this._fieldLogic.selectCircle(inGrid[1]);
+            this.selectTiles(true);
+        }
+        else
+        {
+            this.selectTiles(false);
+            this._fieldLogic.clearSelectedTiles();
+        }
     }
+
+    private selectTiles(select:boolean):void
+    {
+        for (let i:number = 0; i < this._fieldLogic.selectedTiles.length; i++)
+        {
+            let currentTile:Tile = this._fieldLogic.selectedTiles[i];
+            currentTile.setSelected(select);
+        }
+    }
+
+    /*
 
     private checkSwap(pos:Vec2)
     {
