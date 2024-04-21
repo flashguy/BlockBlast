@@ -212,7 +212,7 @@
     "mainMenuPanel": {
       "__id__": 20
     },
-    "sceneLoaderPanel": {
+    "screenLoaderPanel": {
       "__id__": 30
     },
     "progressBar": {
@@ -1302,7 +1302,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 62.844,
+      "y": 62,
       "z": 0
     },
     "_lrot": {

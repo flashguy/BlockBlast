@@ -1,4 +1,4 @@
-import { _decorator, Component, director, error, EventMouse, input, Input, log, Node, Prefab, SceneAsset, tween, Vec2, Vec3, warn } from 'cc';
+import { _decorator, Component, director, error, EventMouse, input, Input, log, math, Node, Prefab, ProgressBar, SceneAsset, tween, Vec2, Vec3, warn } from 'cc';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
 import { ProgressPanelScript } from './ui/ProgressPanelScript';
@@ -38,7 +38,8 @@ enum GameState
     WAIT_SWAP,
     FAIL_GAME,
     WIN_LEVEL,
-    NO_MOVES
+    NO_MOVES,
+    PAUSE
 }
 
 export class GameStateToString
@@ -63,6 +64,7 @@ export class GameStateToString
             case GameState.FAIL_GAME:               return "FAIL_GAME";
             case GameState.WIN_LEVEL:               return "WIN_LEVEL";
             case GameState.NO_MOVES:                return "NO_MOVES";
+            case GameState.PAUSE:                   return "PAUSE";
             default: return "В перечислении GameState нет ключа с таким именем '" + key + "'";
         }
     }
@@ -103,6 +105,12 @@ export class GameScript extends Component
 
     @property(Node)
     private bonusPanel:Node = null;
+
+    @property(Node)
+    private screenLoaderPanel:Node = null;
+
+    @property(ProgressBar)
+    private progressBar:ProgressBar = null;
 
     @property([Prefab])
     private bloсkPrefabs:Prefab[] = [];
@@ -146,6 +154,7 @@ export class GameScript extends Component
     private _currentShuffleTry:number = 0;
     private _startedAnimations:number = 0;
     private _swapTile:Tile = null;
+    private _isPause:boolean = false;
 
     start()
     {
@@ -200,19 +209,49 @@ export class GameScript extends Component
             case GameState.FAIL_GAME:               this.failGame();            break;
             case GameState.WIN_LEVEL:               this.winLevel();            break;
             case GameState.NO_MOVES:                this.noMoves();             break;
+            // case GameState.PAUSE:                   break;
         }
     }
 
     public pause():void
     {
-        
+        this._isPause = !this._isPause;
+
+        if (this._isPause)
+        {
+            this.setState(GameState.PAUSE);
+            
+            this._fieldPanelScript.hideWithScale(() => {
+                this._labelPanelScript.setLebel("Сделали\nперерывчик?", new math.Color(239, 223, 148, 255), 80);
+                this._labelPanelScript.showWithScale();
+            });
+        }
+        else
+        {
+            this._labelPanelScript.hideWithScale(() => { 
+                this._fieldPanelScript.showWithScale(() => {
+                    this.setState(GameState.WAIT_SIMPLE_CLICK);
+                });
+            });
+        }
     }
 
     private gotoMainMenu():void
     {
-        director.preloadScene("MainMenuScene", this.onPorogressLoadScene, (error: null | Error, sceneAsset?: SceneAsset) => {
-            director.loadScene("MainMenuScene");
+        this.screenLoaderPanel.active = true;
+
+        director.preloadScene("MainMenuScene", this.onPorogressLoadScreene, (error: null | Error, sceneAsset?: SceneAsset) => {
+            let interval:number = setInterval(() => {
+                clearInterval(interval);
+                this.screenLoaderPanel.active = false;
+                director.loadScene("MainMenuScene");
+            }, 500);
         });
+    }
+
+    private onPorogressLoadScreene = (completedCount:number, totalCount:number, iten:any) =>
+    {
+        this.progressBar.progress = completedCount / totalCount;
     }
 
     private showLevelWindow():void
@@ -228,7 +267,7 @@ export class GameScript extends Component
         }
         else
         {
-            this._labelPanelScript.setLebel("Игра пройдена", 80);
+            this._labelPanelScript.setLebel("Игра пройдена", new math.Color(137, 202, 74, 255), 80);
             this._labelPanelScript.showWithScale();
 
             let interval:number = setInterval(() => {
@@ -241,12 +280,6 @@ export class GameScript extends Component
 
             
         }
-    }
-
-    private onPorogressLoadScene = (completedCount:number, totalCount:number, iten:any) =>
-    {
-        // this.progressBar.progress = completedCount / totalCount;
-        warn(completedCount / totalCount);
     }
 
     private showScoreWindow():void
@@ -522,7 +555,7 @@ export class GameScript extends Component
             else
             {
                 // INFO: НЕТ ХОДОВ
-                this._labelPanelScript.setLebel("Нет ходов", 80);
+                this._labelPanelScript.setLebel("Нет ходов", new math.Color(218, 56, 84, 255), 80);
                 this._labelPanelScript.showWithScale();
                 
                 let interval:number = setInterval(() => {
@@ -533,7 +566,6 @@ export class GameScript extends Component
                         this.shuffle();
                     });
                 }, 800);
-                
             }
         }
         else
@@ -544,7 +576,7 @@ export class GameScript extends Component
 
     private shuffle():void
     {
-        this._labelPanelScript.setLebel("Тасуем", 80);
+        this._labelPanelScript.setLebel("Тасуем", new math.Color(239, 223, 148, 255), 80);
         this._labelPanelScript.showWithScale();
         
         let interval:number = setInterval(() => {
@@ -579,7 +611,7 @@ export class GameScript extends Component
     private failGame():void
     {
         this._currentLevel--;
-        this._labelPanelScript.setLebel("Эх, Ещё бы чуть-чуть", 80);
+        this._labelPanelScript.setLebel("Эх, Ещё бы чуть-чуть", new math.Color(220, 59, 87, 255), 80);
         this._labelPanelScript.showWithScale();
 
         let interval:number = setInterval(() => {
@@ -590,7 +622,7 @@ export class GameScript extends Component
 
     private winLevel():void
     {
-        this._labelPanelScript.setLebel("Победа", 80);
+        this._labelPanelScript.setLebel("Победа", new math.Color(137, 202, 74, 255), 80);
         this._labelPanelScript.showWithScale();
 
         let interval:number = setInterval(() => {
@@ -602,14 +634,14 @@ export class GameScript extends Component
     private noMoves():void
     {
         this._currentLevel--;
-        this._labelPanelScript.setLebel("Увы, больше\nходов нет", 80);
+        this._labelPanelScript.setLebel("Увы, больше\nходов нет", new math.Color(83, 176, 246, 255), 80);
         this._labelPanelScript.showWithScale();
 
         let interval:number = setInterval(() => {
             clearInterval(interval);
             
             this._labelPanelScript.hideWithScale(() => {
-                this._labelPanelScript.setLebel("конец игры", 80);
+                this._labelPanelScript.setLebel("конец игры", new math.Color(220, 59, 87, 255), 80);
                 this._labelPanelScript.showWithScale();
 
                 let interval:number = setInterval(() => {
