@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventMouse, input, Input, math, Node, Prefab, ProgressBar, SceneAsset, tween, Vec2, Vec3, view } from 'cc';
+import { _decorator, Component, director, EventMouse, EventTouch, input, Input, math, Node, Prefab, ProgressBar, SceneAsset, tween, Vec2, Vec3, view } from 'cc';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
 import { ProgressPanelScript } from './ui/ProgressPanelScript';
@@ -175,6 +175,7 @@ export class GameScript extends Component
 
         input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
         input.on(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
+        input.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
 
         this.setState(GameState.SHOW_LEVEL_WINDOW);
     }
@@ -712,14 +713,14 @@ export class GameScript extends Component
         }
     }
     
-    private onMouseDown(event:EventMouse):void
+    private onFieldDown(locationX:number, locationY:number):void
     {
         if (this._currentState != GameState.WAIT_SIMPLE_CLICK
             && this._currentState != GameState.WAIT_BOMB_CLICK
             && this._currentState != GameState.WAIT_SWAP_CLICK)
             return;
         
-        let screenPoint3D:Vec3 = this._fieldPanelScript.getContentXY(new Vec3(event.getLocationX() / view.getScaleX(), event.getLocationY() / view.getScaleY(), 0));
+        let screenPoint3D:Vec3 = this._fieldPanelScript.getContentXY(new Vec3(locationX / view.getScaleX(), locationY / view.getScaleY(), 0));
         let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
         let inGrid:[Position, Vec2] = this._fieldLogic.grid.screenToGrid(screenPoint2D);
 
@@ -727,19 +728,24 @@ export class GameScript extends Component
         {
             // log("==== >>> In Griid <<< ====");
             
-            if (event.getButton() == 0)
+            switch (this._currentState)
             {
-                switch (this._currentState)
-                {
-                    case GameState.WAIT_SIMPLE_CLICK:   this.simpleClickAction(inGrid[1]); break;
-                    case GameState.WAIT_BOMB_CLICK:     this.bombClickAction(inGrid[1]); break;
-                    case GameState.WAIT_SWAP_CLICK:     this.swapClickAction(inGrid[1]); break;
-                }
+                case GameState.WAIT_SIMPLE_CLICK:   this.simpleClickAction(inGrid[1]); break;
+                case GameState.WAIT_BOMB_CLICK:     this.bombClickAction(inGrid[1]); break;
+                case GameState.WAIT_SWAP_CLICK:     this.swapClickAction(inGrid[1]); break;
             }
         }
         else
         {
             // log("==== >>> Out Of Griid <<< ====");
+        }
+    }
+
+    private onMouseDown(event:EventMouse):void
+    {
+        if (event.getButton() == 0)
+        {
+            this.onFieldDown(event.getLocationX(), event.getLocationY());
         }
         
         // INFO: средняя кнопка мыши тестовое перемешивание
@@ -753,6 +759,11 @@ export class GameScript extends Component
         {
             this.setState(GameState.CREATE_LEVEL);
         }
+    }
+
+    private onTouchStart(event:EventTouch):void
+    {
+        this.onFieldDown(event.getLocationX(), event.getLocationY());
     }
 
     private onMouseMove(event:EventMouse):void
