@@ -54,7 +54,7 @@ export class FieldLogic extends Component
 
     start()
     {
-        this._fieldPanelScript = this.fieldPanel.getComponent(FieldPanelScript) as FieldPanelScript;
+        this._fieldPanelScript = this.fieldPanel.getComponent(FieldPanelScript);
     }
 
     public initialize():void

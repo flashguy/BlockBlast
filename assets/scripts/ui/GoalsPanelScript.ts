@@ -20,7 +20,7 @@ export class GoalsPanelScript extends HiddenPanel
         for (let i = 0; i < level.goals.length; i++)
         {
             let goalItem:Node = instantiate(this.goalPrefab);
-            let goalItemScript:GoalItemScript = goalItem.getComponent(GoalItemScript) as GoalItemScript;
+            let goalItemScript:GoalItemScript = goalItem.getComponent(GoalItemScript);
             goalItemScript.setGoal(level.goals[i]);
 
             this._goalsItemsScripts.push(goalItemScript);

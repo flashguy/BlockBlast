@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventMouse, input, Input, log, math, Node, Prefab, ProgressBar, SceneAsset, tween, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, director, EventMouse, input, Input, math, Node, Prefab, ProgressBar, SceneAsset, tween, Vec2, Vec3, view } from 'cc';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
 import { ProgressPanelScript } from './ui/ProgressPanelScript';
@@ -160,18 +160,18 @@ export class GameScript extends Component
     {
         BlocksPrefabs.setPrefabs(this.bloсkPrefabs);
 
-        this._fieldLogic = this.node.getComponent(FieldLogic) as FieldLogic;
-        this._fieldPanelScript = this.fieldPanel.getComponent(FieldPanelScript) as FieldPanelScript;
-        this._progressPanelScript = this.progressPanel.getComponent(ProgressPanelScript) as ProgressPanelScript;
-        this._scorePanelScript = this.scorePanel.getComponent(ScorePanelScript) as ScorePanelScript;
-        this._levelPanelScript = this.levelPanel.getComponent(LevelPanelScript) as LevelPanelScript;
-        this._pauseButtonPanelScript = this.pausePanel.getComponent(PauseButtonPanelScript) as PauseButtonPanelScript;
-        this._goalsPanelScript = this.goalsPanel.getComponent(GoalsPanelScript) as GoalsPanelScript;
-        this._movesPanelScript = this.mavesPanel.getComponent(MovesPaneScript) as MovesPaneScript;
-        this._labelPanelScript = this.labelPanel.getComponent(LabelPanelScript) as LabelPanelScript;
-        this._moneyPanelScript = this.moneyPanel.getComponent(MoneyPanelScript) as MoneyPanelScript;
-        this._levelScorePanelScript = this.levelScorePanel.getComponent(LevelScorePanelScript) as LevelScorePanelScript;
-        this._bonusPanelScript = this.bonusPanel.getComponent(BonusPanelScript) as BonusPanelScript;
+        this._fieldLogic = this.node.getComponent(FieldLogic);
+        this._fieldPanelScript = this.fieldPanel.getComponent(FieldPanelScript);
+        this._progressPanelScript = this.progressPanel.getComponent(ProgressPanelScript);
+        this._scorePanelScript = this.scorePanel.getComponent(ScorePanelScript);
+        this._levelPanelScript = this.levelPanel.getComponent(LevelPanelScript);
+        this._pauseButtonPanelScript = this.pausePanel.getComponent(PauseButtonPanelScript);
+        this._goalsPanelScript = this.goalsPanel.getComponent(GoalsPanelScript);
+        this._movesPanelScript = this.mavesPanel.getComponent(MovesPaneScript);
+        this._labelPanelScript = this.labelPanel.getComponent(LabelPanelScript);
+        this._moneyPanelScript = this.moneyPanel.getComponent(MoneyPanelScript);
+        this._levelScorePanelScript = this.levelScorePanel.getComponent(LevelScorePanelScript);
+        this._bonusPanelScript = this.bonusPanel.getComponent(BonusPanelScript);
 
         input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
         input.on(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
@@ -711,7 +711,7 @@ export class GameScript extends Component
                 break;
         }
     }
-
+    
     private onMouseDown(event:EventMouse):void
     {
         if (this._currentState != GameState.WAIT_SIMPLE_CLICK
@@ -719,7 +719,7 @@ export class GameScript extends Component
             && this._currentState != GameState.WAIT_SWAP_CLICK)
             return;
         
-        let screenPoint3D:Vec3 = this._fieldPanelScript.getContentXY(new Vec3(event.getLocationX(), event.getLocationY(), 0));
+        let screenPoint3D:Vec3 = this._fieldPanelScript.getContentXY(new Vec3(event.getLocationX() / view.getScaleX(), event.getLocationY() / view.getScaleY(), 0));
         let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
         let inGrid:[Position, Vec2] = this._fieldLogic.grid.screenToGrid(screenPoint2D);
 
@@ -760,7 +760,7 @@ export class GameScript extends Component
         if (this._currentState != GameState.WAIT_BOMB_CLICK)
             return;
         
-        let screenPoint3D:Vec3 = this._fieldPanelScript.getContentXY(new Vec3(event.getLocationX(), event.getLocationY(), 0));
+        let screenPoint3D:Vec3 = this._fieldPanelScript.getContentXY(new Vec3(event.getLocationX() / view.getScaleX(), event.getLocationY() / view.getScaleY(), 0));
         let screenPoint2D:Vec2 = new Vec2(screenPoint3D.x, screenPoint3D.y);
         let inGrid:[Position, Vec2] = this._fieldLogic.grid.screenToGrid(screenPoint2D);
 

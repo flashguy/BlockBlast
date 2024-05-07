@@ -32,7 +32,7 @@ export class LevelPanelScript extends HiddenPanel
             goalPos.x = (180 * i) - (((level.goals.length - 1) * 180) / 2);
             goal.setPosition(goalPos);
             
-            let goalScript:GoalBlockScript = goal.getComponent(GoalBlockScript) as GoalBlockScript;
+            let goalScript:GoalBlockScript = goal.getComponent(GoalBlockScript);
             goalScript.setGoal(level.goals[i]);
 
             this.goals.addChild(goal);
