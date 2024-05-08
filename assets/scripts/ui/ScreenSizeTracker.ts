@@ -34,6 +34,8 @@ export class ScreenSizeTracker extends Component
         const vWidth = screenSize.width * scale;
         const vHeight = screenSize.height * scale;
 
+        // view.resizeWithBrowserSize(true);
+        // view.setDesignResolutionSize(window.innerWidth, window.innerHeight, ResolutionPolicy.EXACT_FIT);
         view.setDesignResolutionSize(vWidth, vHeight, ResolutionPolicy.SHOW_ALL);
     }
 }

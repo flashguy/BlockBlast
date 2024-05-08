@@ -743,10 +743,10 @@ export class GameScript extends Component
 
     private onMouseDown(event:EventMouse):void
     {
-        if (event.getButton() == 0)
-        {
-            this.onFieldDown(event.getLocationX(), event.getLocationY());
-        }
+        // if (event.getButton() == 0)
+        // {
+        //     this.onFieldDown(event.getLocationX(), event.getLocationY());
+        // }
         
         // INFO: средняя кнопка мыши тестовое перемешивание
         if (event.getButton() == 1)
