@@ -60,8 +60,12 @@ export class FieldLogic extends Component
     public initialize():void
     {
         this._cell = new CellFromRectangle(this.cellSize.x, this.cellSize.y);
-        this._grid = new RectangleGrid(this._cell, new Vec2((this.fieldSize.x % 2 == 0 ? 0 : -this._cell.halfWidth), (this.fieldSize.y % 2 == 0 ? 0 : -this._cell.halfHeight)), new Vec2());
-        this._shapeRectangle = ShapeBuilder.getRectangle(new Vec2(), Position.C, this.fieldSize);
+
+        // const originPosition:Vec2 = new Vec2((this.fieldSize.x % 2 == 0 ? 0 : -this._cell.halfWidth), (this.fieldSize.y % 2 == 0 ? 0 : -this._cell.halfHeight));
+        const originPosition:Vec2 = new Vec2(-((this.fieldSize.x * this._cell.width) / 2), -((this.fieldSize.y * this._cell.height) / 2));
+
+        this._grid = new RectangleGrid(this._cell, originPosition, new Vec2());
+        this._shapeRectangle = ShapeBuilder.getRectangle(new Vec2(), Position.RT, this.fieldSize);
 
         this.clearTiles();
         this.shapeRectangle.get().forEach((cellPoint) =>
@@ -75,6 +79,7 @@ export class FieldLogic extends Component
         let inScreen:Vec2 = this.grid.gridToScreen(cellPoint);
         let tileType:number = randomRangeInt(0, BlocksPrefabs.getLength());
         // let tileType:number = randomRangeInt(0, 3);
+        // let tileType:number = 0;
         let blockPrefab:Node = instantiate(BlocksPrefabs.getBlockPrefabByType(tileType));
         blockPrefab.active = true;
         blockPrefab.setPosition(new Vec3(inScreen.x, inScreen.y, 0));
@@ -116,13 +121,7 @@ export class FieldLogic extends Component
 
     public getTyleIndexByGridPosition(pos:Vec2):number
     {
-        for (let i:number = 0; i < this.tiles.length; i++)
-        {
-            if (this.tiles[i].pos.equals(pos))
-                return i;
-        }
-
-        return -1;
+        return (pos.y * this.fieldSize.x) + pos.x;
     }
 
     private isTyleChecked(pos:Vec2):boolean
@@ -134,6 +133,17 @@ export class FieldLogic extends Component
         }
 
         return false;
+    }
+
+    public getSimpleClick2(pos:Vec2):void
+    {
+        this._searchStackDepth = 0;
+        this._checkedPositions = new Array<Vec2>();
+
+        this._firstSelectedTile = this.getTyleByGridPosition(pos);
+        this.selectedTiles.push(this._firstSelectedTile);
+
+        this.checkNeighbors(pos, null);
     }
 
     public getSimpleClick(pos:Vec2):void
@@ -349,5 +359,3 @@ export class FieldLogic extends Component
         });
     }
 }
-
-

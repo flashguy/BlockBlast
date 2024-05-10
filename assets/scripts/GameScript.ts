@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventMouse, EventTouch, input, Input, math, Node, Prefab, ProgressBar, SceneAsset, tween, Vec2, Vec3, view } from 'cc';
+import { _decorator, Component, director, EventMouse, EventTouch, input, Input, log, math, Node, Prefab, ProgressBar, SceneAsset, tween, Vec2, Vec3, view } from 'cc';
 import { Position } from './Honeycomb/Geometry/Enumerations';
 import { Tile } from './Tile';
 import { ProgressPanelScript } from './ui/ProgressPanelScript';
@@ -439,6 +439,7 @@ export class GameScript extends Component
 
     private removeSelectedTiles():void
     {
+        log("this._fieldLogic.selectedTiles.length", this._fieldLogic.selectedTiles.length)
         if (this._fieldLogic.selectedTiles.length >= this._fieldLogic.minBlocksGroup)
         {
             this._lastDeletedBlocksCount = this._fieldLogic.selectedTiles.length;
@@ -768,6 +769,19 @@ export class GameScript extends Component
 
     private onMouseMove(event:EventMouse):void
     {
+        // if (this._currentState == GameState.WAIT_SIMPLE_CLICK)
+        // {
+        //     let screenPoint3D1:Vec3 = this._fieldPanelScript.getContentXY(new Vec3(event.getLocationX() / view.getScaleX(), event.getLocationY() / view.getScaleY(), 0));
+        //     let screenPoint2D1:Vec2 = new Vec2(screenPoint3D1.x, screenPoint3D1.y);
+        //     let inGrid1:[Position, Vec2] = this._fieldLogic.grid.screenToGrid(screenPoint2D1);
+        //     if (inGrid1[0] == Position.IN && this._fieldLogic.shapeRectangle.isInShape(inGrid1[1]))
+        //     {
+        //     //     // startCell.x - Math.floor(columns / 2), startCell.y - Math.floor(rows / 2))
+        //         log("cell:", inGrid1[1], "index:", (inGrid1[1].y * this._fieldLogic.getFieldSize.x + inGrid1[1].x));
+        //         // log(inGrid1[1].toString());
+        //     }
+        // }
+
         if (this._currentState != GameState.WAIT_BOMB_CLICK)
             return;
         

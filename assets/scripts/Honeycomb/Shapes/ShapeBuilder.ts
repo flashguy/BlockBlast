@@ -65,6 +65,8 @@ export class ShapeBuilder
         for (let i:number = 0; i < size; i++)
         {
             shape.add(new Vec2(gridCell.x + (i % columns) * multiplierX, gridCell.y + Math.floor(i / columns) * multiplierY));
+            // INFO: обратное преобразование x и y в i
+            // y * columns + x == i
         }
 
         // if (shape.lb && shape.rt)
