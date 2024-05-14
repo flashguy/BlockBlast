@@ -344,14 +344,12 @@ export class GameScript extends Component
     // Проверка рядом стоящих тайлов после клика
     private simpleClickAction(pos:Vec2):void
     {
-        this._fieldLogic.clearSelectedTiles();
         this._fieldLogic.getSimpleClick(pos);
         this.setState(GameState.REMOVE_SELECTED_TILES);
     }
 
     private bombClickAction(pos:Vec2):void
     {
-        this._fieldLogic.clearSelectedTiles();
         this._fieldLogic.selectCircle(pos);
         this.setState(GameState.REMOVE_SELECTED_TILES);
     }
@@ -488,8 +486,6 @@ export class GameScript extends Component
         {
             this.setState(GameState.WAIT_SIMPLE_CLICK);
         }
-        
-        this._fieldLogic.clearSelectedTiles();
     }
 
     private checkEndGame():void
@@ -792,14 +788,12 @@ export class GameScript extends Component
         if (inGrid[0] == Position.IN && this._fieldLogic.shapeRectangle.isInShape(inGrid[1]))
         {
             this.selectTiles(false);
-            this._fieldLogic.clearSelectedTiles();
             this._fieldLogic.selectCircle(inGrid[1]);
             this.selectTiles(true);
         }
         else
         {
             this.selectTiles(false);
-            this._fieldLogic.clearSelectedTiles();
         }
     }
 

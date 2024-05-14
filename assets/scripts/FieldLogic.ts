@@ -38,9 +38,6 @@ export class FieldLogic extends Component
     private _grid:Grid;
     private _shapeRectangle:Shape;
 
-    private _checkedPositions:Array<Vec2> = new Array<Vec2>();
-    private _firstSelectedTile:Tile;
-    private _searchStackDepth:number = 0;
     private _offsetNewTile:Map<number, number> = new Map<number, number>();
     
     public get cell():Cell { return this._cell; }
@@ -78,7 +75,7 @@ export class FieldLogic extends Component
     {
         let inScreen:Vec2 = this.grid.gridToScreen(cellPoint);
         let tileType:number = randomRangeInt(0, BlocksPrefabs.getLength());
-        // let tileType:number = randomRangeInt(0, 3);
+        // let tileType:number = randomRangeInt(0, 2);
         // let tileType:number = 0;
         let blockPrefab:Node = instantiate(BlocksPrefabs.getBlockPrefabByType(tileType));
         blockPrefab.active = true;
@@ -90,12 +87,20 @@ export class FieldLogic extends Component
         tile.pos = cellPoint;
         tile.node = blockPrefab;
         tile.type = tileType;
-        tile.updateLabel(); // INFO: включает отладочную информацию
         tile.init();
         
         this.tiles.push(tile);
+        tile.updateLabel((this.tiles.length - 1).toString()); // INFO: включает отладочную информацию
 
         return tile;
+    }
+
+    private updateLabels():void
+    {
+        for (let i:number = 0; i < this.tiles.length; i++)
+        {
+            this.tiles[i].updateLabel(i.toString()); // INFO: включает отладочную информацию
+        }
     }
 
     public clearTiles():void
@@ -124,88 +129,48 @@ export class FieldLogic extends Component
         return (pos.y * this.fieldSize.x) + pos.x;
     }
 
-    private isTyleChecked(pos:Vec2):boolean
-    {
-        for (let i:number = 0; i < this._checkedPositions.length; i++)
-        {
-            if (pos.equals(this._checkedPositions[i]))
-                return true;
-        }
-
-        return false;
-    }
-
-    public getSimpleClick2(pos:Vec2):void
-    {
-        this._searchStackDepth = 0;
-        this._checkedPositions = new Array<Vec2>();
-
-        this._firstSelectedTile = this.getTyleByGridPosition(pos);
-        this.selectedTiles.push(this._firstSelectedTile);
-
-        this.checkNeighbors(pos, null);
-    }
-
     public getSimpleClick(pos:Vec2):void
     {
-        this._searchStackDepth = 0;
-        this._checkedPositions = new Array<Vec2>();
+        this.clearSelectedTiles();
+        let visited:boolean[] = new Array(this.tiles.length).fill(false);
+        let queue:Vec2[] = [];
 
-        this._firstSelectedTile = this.getTyleByGridPosition(pos);
-        this.selectedTiles.push(this._firstSelectedTile);
+        let selectedTile = this.tiles[this.getTyleIndexByGridPosition(pos)];
+        const seatchType:number = selectedTile.type;
+        this.selectedTiles.push(selectedTile);
+        visited[this.getTyleIndexByGridPosition(pos)] = true;
+        queue.push(pos.clone());
 
-        this.checkNeighbors(pos, null);
-    }
-
-    private checkNeighbors(pos:Vec2, excludededParent:Position):void
-    {
-        this._searchStackDepth++;
-        this._checkedPositions.push(pos);
-
-        if (excludededParent != Position.L)
+        let checkNeighbor:Function = (pos:Vec2, direction:Position) =>
         {
-            this.checkNeighbor(pos, Position.L, Position.R);
-        }
-
-        if (excludededParent != Position.T)
-        {
-            this.checkNeighbor(pos, Position.T, Position.B);
-        }
-
-        if (excludededParent != Position.R)
-        {
-            this.checkNeighbor(pos, Position.R, Position.L);
-        }
-
-        if (excludededParent != Position.B)
-        {
-            this.checkNeighbor(pos, Position.B, Position.T);
-        }
-
-        this._searchStackDepth--;
-
-        if (this._searchStackDepth == 0)
-        {
+            let tempNeighborPos = this._grid.getCellNeighbor(pos, direction);
             
-        }
-    }
-
-    private checkNeighbor(pos:Vec2, direction:Position, excludededParent:Position):void
-    {
-        let tempTile:Tile;
-        let tempPos:Vec2;
-
-        tempPos = this._grid.getCellNeighbor(pos, direction);
-
-        if (this._shapeRectangle.isInShape(tempPos) && !this.isTyleChecked(tempPos))
-        {
-            tempTile = this.getTyleByGridPosition(tempPos);
-
-            if (tempTile != null && this._firstSelectedTile.type == tempTile.type)
+            if (this._shapeRectangle.isInShape(tempNeighborPos))
             {
-                this.selectedTiles.push(tempTile);
-                this.checkNeighbors(tempTile.pos, excludededParent);
+                let index:number = this.getTyleIndexByGridPosition(tempNeighborPos);
+                
+                if (!visited[index])
+                {
+                    visited[index] = true;
+                    let tempTile:Tile = this.tiles[index];
+
+                    if (tempTile.type == seatchType)
+                    {
+                        queue.push(tempNeighborPos.clone());
+                        this.selectedTiles.push(tempTile);
+                    }
+                }
             }
+        };
+
+        while (queue.length !== 0)
+        {
+            let tempPos:Vec2 = queue.shift();
+
+            checkNeighbor(tempPos, Position.L);
+            checkNeighbor(tempPos, Position.T);
+            checkNeighbor(tempPos, Position.R);
+            checkNeighbor(tempPos, Position.B);
         }
     }
 
@@ -247,7 +212,6 @@ export class FieldLogic extends Component
                         if (upTile != null)
                         {
                             upTile.pos = cellPoint.clone();
-                            upTile.updateLabel();
                             
                             this.selectedTiles.push(upTile);
                         }
@@ -257,6 +221,8 @@ export class FieldLogic extends Component
                 }
             });
         }
+
+        this.sortTiles();
     }
 
     public checkNeedShuffle():boolean
@@ -325,6 +291,8 @@ export class FieldLogic extends Component
                 return 0;
             }
         });
+
+        this.updateLabels();
     }
 
     public shuffle():void
@@ -337,17 +305,17 @@ export class FieldLogic extends Component
             let tempPos:Vec2 = leftTile.pos.clone();
             
             leftTile.pos = rightTile.pos.clone();
-            leftTile.updateLabel();
 
             rightTile.pos = tempPos.clone();
-            rightTile.updateLabel();
         }
 
         this.sortTiles();
+        this.updateLabels();
     }
 
     public selectCircle(pos:Vec2):void
     {
+        this.clearSelectedTiles();
         let shapeCircle:Shape = ShapeBuilder.getMidpointCircle(pos, this.bombDistance);
         
         shapeCircle.get().forEach((cellPoint) =>

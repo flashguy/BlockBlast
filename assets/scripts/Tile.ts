@@ -14,13 +14,14 @@ export class Tile
     private _blockSelectedScale:Vec3 = new Vec3(0.45, 0.45, 1);
     private _blockPos:Vec3 = new Vec3();
 
-    public updateLabel():void
+    public updateLabel(str:string = ""):void
     {
-        this.node.getChildByName("Label").getComponent(Label).string = this.pos.toString();
+        this.node.getChildByName("Label").getComponent(Label).string = this.pos.toString() + " / " + str;
     }
 
     public init():void
     {
+        this.node.getChildByName("Label").active = false;
         this.node.active = true;
         this._blockPos = this.node.getPosition().clone();
         this.setSelected(false);
