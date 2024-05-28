@@ -439,34 +439,32 @@ export class GameScript extends Component
     private removeSelectedTiles():void
     {
         // log(this._fieldLogic.tiles);
-        if (this._fieldLogic.selectedTiles.length >= this._fieldLogic.minBlocksGroup)
+        if (this._fieldLogic.selectedTiles.size >= this._fieldLogic.minBlocksGroup)
         {
-            this._lastDeletedBlocksCount = this._fieldLogic.selectedTiles.length;
+            this._lastDeletedBlocksCount = this._fieldLogic.selectedTiles.size;
 
-            for (let i:number = 0; i < this._fieldLogic.selectedTiles.length; i++)
+            for (let tile of this._fieldLogic.selectedTiles)
             {
-                let currentTile:Tile = this._fieldLogic.selectedTiles[i];
-
-                if (this._goalsBlock.has(currentTile.type))
+                if (this._goalsBlock.has(tile.type))
                 {
-                    let blockCount:number = this._goalsBlock.get(currentTile.type);
+                    let blockCount:number = this._goalsBlock.get(tile.type);
 
                     if (blockCount > 0)
                     {
-                        this._goalsBlock.set(currentTile.type, blockCount - 1);
+                        this._goalsBlock.set(tile.type, blockCount - 1);
                         this._currentLevelBlocksProgress--;
                     }
                 }
 
-                // this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(currentTile), 1);
-                this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(currentTile), 1, null);
+                // this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(tile), 1);
+                this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(tile), 1, null);
 
                 this._startedAnimations++;
-                let tileCenterPos:Vec2 = this._fieldLogic.grid.gridToScreen(currentTile.pos);
+                let tileCenterPos:Vec2 = this._fieldLogic.grid.gridToScreen(tile.pos);
                 tileCenterPos.add(this._fieldLogic.cell.center);
 
                 let burnTween = tween;
-                burnTween(currentTile.node)
+                burnTween(tile.node)
                 .parallel(
                     burnTween().to(0.2, {scale: new Vec3(0, 0, 1)}, { easing: 'backIn' }),
                     burnTween().to(0.2, {position: new Vec3(tileCenterPos.x, tileCenterPos.y, 0)}, { easing: 'backIn' })
@@ -474,7 +472,7 @@ export class GameScript extends Component
                 .call(() => {
                     this._startedAnimations--;
 
-                    this._fieldPanelScript.remove(currentTile.node);
+                    this._fieldPanelScript.remove(tile.node);
 
                     if (this._startedAnimations == 0)
                     {
@@ -537,22 +535,20 @@ export class GameScript extends Component
     {
         this._fieldLogic.spawnNewTiles();
 
-        for (let i:number = 0; i < this._fieldLogic.selectedTiles.length; i++)
+        for (let tile of this._fieldLogic.selectedTiles)
         {
-            // linear | bounceOut
-            let currentTile:Tile = this._fieldLogic.selectedTiles[i];
-            let inScreen:Vec2 = this._fieldLogic.grid.gridToScreen(currentTile.pos);
-            let distance:number = Math.max(Math.abs(currentTile.node.getPosition().x - inScreen.x), Math.abs(currentTile.node.getPosition().y - inScreen.y));
+            let inScreen:Vec2 = this._fieldLogic.grid.gridToScreen(tile.pos);
+            let distance:number = Math.max(Math.abs(tile.node.getPosition().x - inScreen.x), Math.abs(tile.node.getPosition().y - inScreen.y));
             let moveSpeed:number = 1500;
             let duration:number = distance / moveSpeed;
             
-            tween(currentTile.node)
+            tween(tile.node)
             .to(duration, {position: new Vec3(inScreen.x, inScreen.y, 0)}, { easing: 'linear' })
             .to(0.1, {position: new Vec3(inScreen.x, inScreen.y + 3, 0)}, { easing: 'linear' })
             .to(0.1, {position: new Vec3(inScreen.x, inScreen.y, 0)}, { easing: 'linear' })
             .call(() => {
-                this._fieldLogic.selectedTiles.splice(0, 1);
-                if (this._fieldLogic.selectedTiles.length == 0)
+                this._fieldLogic.selectedTiles.delete(tile);
+                if (this._fieldLogic.selectedTiles.size == 0)
                 {
                     this.setState(GameState.CHECK_NEED_SHUFFLE);
                 }
@@ -802,10 +798,9 @@ export class GameScript extends Component
 
     private selectTiles(select:boolean):void
     {
-        for (let i:number = 0; i < this._fieldLogic.selectedTiles.length; i++)
+        for (let tile of this._fieldLogic.selectedTiles)
         {
-            let currentTile:Tile = this._fieldLogic.selectedTiles[i];
-            currentTile.setSelected(select);
+            tile.setSelected(select);
         }
     }
 }

@@ -47,7 +47,7 @@ export class FieldLogic extends Component
     public get getCellSize() { return this.cellSize; }
     
     public tiles:Array<Tile> = new Array<Tile>();
-    public selectedTiles:Array<Tile> = new Array<Tile>();
+    public selectedTiles:Set<Tile> = new Set<Tile>();
 
     start()
     {
@@ -76,9 +76,9 @@ export class FieldLogic extends Component
     private createTile(cellPoint:Vec2):Tile
     {
         let inScreen:Vec2 = this.grid.gridToScreen(cellPoint);
-        let tileType:number = randomRangeInt(0, BlocksPrefabs.getLength());
+        // let tileType:number = randomRangeInt(0, BlocksPrefabs.getLength());
         // let tileType:number = randomRangeInt(0, 2);
-        // let tileType:number = 0;
+        let tileType:number = 0;
         let blockPrefab:Node = instantiate(BlocksPrefabs.getBlockPrefabByType(tileType));
         blockPrefab.active = true;
         blockPrefab.setPosition(new Vec3(inScreen.x, inScreen.y, 0));
@@ -110,7 +110,7 @@ export class FieldLogic extends Component
 
     public clearSelectedTiles():void
     {
-        this.selectedTiles = new Array<Tile>();
+        this.selectedTiles = new Set<Tile>();
     }
 
     public getTyleByGridPosition(pos:Vec2):Tile
@@ -137,7 +137,7 @@ export class FieldLogic extends Component
 
         let selectedTile = this.tiles[this.getTyleIndexByGridPosition(pos)];
         const seatchType:number = selectedTile.type;
-        this.selectedTiles.push(selectedTile);
+        this.selectedTiles.add(selectedTile);
         visited[this.getTyleIndexByGridPosition(pos)] = true;
         queue.push(pos.clone());
 
@@ -157,7 +157,7 @@ export class FieldLogic extends Component
                     if (tempTile.type == seatchType)
                     {
                         queue.push(tempNeighborPos.clone());
-                        this.selectedTiles.push(tempTile);
+                        this.selectedTiles.add(tempTile);
                     }
                 }
             }
@@ -176,24 +176,6 @@ export class FieldLogic extends Component
 
     public spawnNewTiles():void
     {
-        // let m:Map<Vec2, number> = new Map<Vec2, number>();
-        // m.set(new Vec2(1, 3), 1);
-        // m.set(new Vec2(2, 3), 2);
-        // m.set(new Vec2(2, 3), 3);
-        // m.set(new Vec2(2, 3), 4);
-        // log(m)
-        // log(m.has(new Vec2(2, 3)))
-        // let s:Set<Vec2> = new Set<Vec2>();
-        // s.add(new Vec2(1, 3));
-        // s.add(new Vec2(2, 3));
-        // s.add(new Vec2(3, 3));
-        // s.add(new Vec2(3, 3));
-        // s.add(new Vec2(3, 3));
-        // s.add(new Vec2(3, 3));
-        // log(s)
-        // log(s.has(new Vec2(2, 3)))
-
-        let visited:Set<Tile> = new Set<Tile>();
         this.clearSelectedTiles();
         this._offsetNewTile.clear();
         let loop:boolean = true;
@@ -226,8 +208,7 @@ export class FieldLogic extends Component
                         let inScreen:Vec2 = this.grid.gridToScreen(newPos);
                         newTile.node.setPosition(new Vec3(inScreen.x, inScreen.y, 0));
 
-                        this.selectedTiles.push(newTile);
-                        visited.add(newTile);
+                        this.selectedTiles.add(newTile);
                     }
                     else
                     {
@@ -241,11 +222,7 @@ export class FieldLogic extends Component
                             this.tiles[i] = upTile;
                             this.tiles[upTileIndex] = null;
                             
-                            if (!visited.has(upTile))
-                            {
-                                this.selectedTiles.push(upTile);
-                            }
-                            visited.add(upTile);
+                            this.selectedTiles.add(upTile);
                         }
                     }
 
@@ -253,9 +230,6 @@ export class FieldLogic extends Component
                 }
             }
         }
-        // log("this.selectedTiles.length", this.selectedTiles.length);
-        // log(visited);
-        // log("visited.size", visited.size);
     }
 
     public checkNeedShuffle():boolean
@@ -346,7 +320,7 @@ export class FieldLogic extends Component
         {
             if (this._shapeRectangle.isInShape(cellPoint))
             {
-                this.selectedTiles.push(this.tiles[this.getTyleIndexByGridPosition(cellPoint)]);
+                this.selectedTiles.add(this.tiles[this.getTyleIndexByGridPosition(cellPoint)]);
             }
         });
     }
