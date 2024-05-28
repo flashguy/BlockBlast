@@ -356,7 +356,7 @@ export class GameScript extends Component
 
     private swapClickAction(pos:Vec2):void
     {
-        let clickedTile:Tile = this._fieldLogic.getTyleByGridPosition(pos);
+        let clickedTile:Tile = this._fieldLogic.tiles[this._fieldLogic.getTyleIndexByGridPosition(pos)];
 
         if (clickedTile != null)
         {
@@ -387,6 +387,7 @@ export class GameScript extends Component
                     this._swapTile.setSelected(false);
                     this._swapTile.pos = clickedTile.pos.clone();
                     this._swapTile.updateLabel();
+
                     clickedTile.pos = tempPos;
                     clickedTile.updateLabel();
 
@@ -437,7 +438,7 @@ export class GameScript extends Component
 
     private removeSelectedTiles():void
     {
-        log("this._fieldLogic.selectedTiles.length", this._fieldLogic.selectedTiles.length)
+        // log(this._fieldLogic.tiles);
         if (this._fieldLogic.selectedTiles.length >= this._fieldLogic.minBlocksGroup)
         {
             this._lastDeletedBlocksCount = this._fieldLogic.selectedTiles.length;
@@ -457,7 +458,8 @@ export class GameScript extends Component
                     }
                 }
 
-                this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(currentTile), 1);
+                // this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(currentTile), 1);
+                this._fieldLogic.tiles.splice(this._fieldLogic.tiles.indexOf(currentTile), 1, null);
 
                 this._startedAnimations++;
                 let tileCenterPos:Vec2 = this._fieldLogic.grid.gridToScreen(currentTile.pos);
@@ -476,6 +478,7 @@ export class GameScript extends Component
 
                     if (this._startedAnimations == 0)
                     {
+                        // log(this._fieldLogic.tiles);
                         this.setState(GameState.CHECK_END_GAME);
                     }
                 })
@@ -540,7 +543,7 @@ export class GameScript extends Component
             let currentTile:Tile = this._fieldLogic.selectedTiles[i];
             let inScreen:Vec2 = this._fieldLogic.grid.gridToScreen(currentTile.pos);
             let distance:number = Math.max(Math.abs(currentTile.node.getPosition().x - inScreen.x), Math.abs(currentTile.node.getPosition().y - inScreen.y));
-            let moveSpeed:number = 700;
+            let moveSpeed:number = 1500;
             let duration:number = distance / moveSpeed;
             
             tween(currentTile.node)

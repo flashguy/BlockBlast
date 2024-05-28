@@ -17,6 +17,7 @@ export class GoalBlockScript extends Component
         this.label.string = goal.quantity.toString();
         
         let block:Node = instantiate(BlocksPrefabs.getBlockPrefabByType(goal.type));
+        block.getChildByName("Label").active = false;
         const uiTransform = block.getComponent(UITransform);
         
         block.setPosition(new Vec3(-uiTransform.width / 2, 0, 0));

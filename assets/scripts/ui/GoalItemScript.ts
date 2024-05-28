@@ -20,6 +20,7 @@ export class GoalItemScript extends Component
         this.setValue(goal.quantity);
         
         let block:Node = instantiate(BlocksPrefabs.getBlockPrefabByType(goal.type));
+        block.getChildByName("Label").active = false;
         block.setScale(new Vec3(0.4, 0.4, 1));
 
         const uiTransform = block.getComponent(UITransform);
