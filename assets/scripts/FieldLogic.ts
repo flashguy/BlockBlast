@@ -113,17 +113,6 @@ export class FieldLogic extends Component
         this.selectedTiles = new Set<Tile>();
     }
 
-    public getTyleByGridPosition(pos:Vec2):Tile
-    {
-        for (let i:number = 0; i < this.tiles.length; i++)
-        {
-            if (this.tiles[i].pos.equals(pos))
-                return this.tiles[i];
-        }
-
-        return null;
-    }
-
     public getTyleIndexByGridPosition(pos:Vec2):number
     {
         return (pos.y * this.fieldSize.x) + pos.x;
