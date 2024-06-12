@@ -4,6 +4,8 @@ const { ccclass, property } = _decorator;
 @ccclass('Shape')
 // TODO: Shape это отдельные классы со своими методами сделать методы находится ли на линии.
 // А в ShapeBuilder уже создавать от этого абстрактный класс Rect и т.д.
+// хранить массив с ячейками фигуры в самой фигуре
+// сортировка ячеек в в самой фигуре
 export class Shape
 {
     private readonly _positions:Array<Vec2> = new Array<Vec2>();

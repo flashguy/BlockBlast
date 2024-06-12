@@ -404,6 +404,7 @@ export class GameScript extends Component
     {
         this._fieldLogic.sortTiles();
 
+        // тут достаточно поменять порядок зная его по тайлам в массиве индекса перестановкой
         for (let i:number = 0; i < this._fieldLogic.tiles.length; i++)
         {
             let currentTile:Tile = this._fieldLogic.tiles[i];
