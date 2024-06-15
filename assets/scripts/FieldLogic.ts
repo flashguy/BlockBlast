@@ -76,9 +76,9 @@ export class FieldLogic extends Component
     private createTile(cellPoint:Vec2):Tile
     {
         let inScreen:Vec2 = this.grid.gridToScreen(cellPoint);
-        // let tileType:number = randomRangeInt(0, BlocksPrefabs.getLength());
+        let tileType:number = randomRangeInt(0, BlocksPrefabs.getLength());
         // let tileType:number = randomRangeInt(0, 2);
-        let tileType:number = 0;
+        // let tileType:number = 0;
         let blockPrefab:Node = instantiate(BlocksPrefabs.getBlockPrefabByType(tileType));
         blockPrefab.active = true;
         blockPrefab.setPosition(new Vec3(inScreen.x, inScreen.y, 0));
